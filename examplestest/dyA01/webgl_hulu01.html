@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - mirror</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				color: #888888;
+				font-family:Monospace;
+				font-size:13px;
+
+				background-color: #000;
+				margin: 0px;
+				overflow: hidden;
+			}
+
+			#info {
+				position: absolute;
+				top: 0px;
+				width: 200px;
+				left: calc(50% - 100px);
+				text-align: center;
+			}
+
+			a {
+				color: #00f;
+			}
+		</style>
+	</head>
+	<body>
+
+		<div id="container"></div>
+
+
+		<script src="../js/three.js"></script>
+		<script src="../js/objects/Reflector.js"></script>
+		<script src="../js/controls/OrbitControls.js"></script>
+
+		<script>
+
+			// scene size
+			var WIDTH = window.innerWidth;
+			var HEIGHT = window.innerHeight;
+
+			// camera
+			var VIEW_ANGLE = 45;
+			var ASPECT = WIDTH / HEIGHT;
+			var NEAR = 1;
+			var FAR = 500;
+
+			var camera, scene, renderer;
+
+			var cameraControls;
+
+			var sphereGroup, smallSphere;
+			var materialcolors = [];
+
+			init();
+			animate();
+
+			function init() {
+
+				var container = document.getElementById( 'container' );
+
+				// renderer
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( WIDTH, HEIGHT );
+				container.appendChild( renderer.domElement );
+
+				// scene
+				scene = new THREE.Scene();
+
+				// camera
+				camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR );
+				camera.position.set( 0, 75, 160 );
+
+				cameraControls = new THREE.OrbitControls( camera, renderer.domElement );
+				cameraControls.target.set( 0, 40, 0 );
+				cameraControls.maxDistance = 400;
+				cameraControls.minDistance = 10;
+				cameraControls.update();
+
+                materialcolors.push( new THREE.MeshPhongMaterial( { color: 0xff0000, emissive: 0x444444 } ));
+                materialcolors.push( new THREE.MeshPhongMaterial( { color: 0xff9900, emissive: 0x444444 } ));
+                materialcolors.push( new THREE.MeshPhongMaterial( { color: 0xffff00, emissive: 0x444444 } ));
+                materialcolors.push( new THREE.MeshPhongMaterial( { color: 0x66ff00, emissive: 0x444444 } ));
+                materialcolors.push( new THREE.MeshPhongMaterial( { color: 0x3333ff, emissive: 0x444444 } ));
+                materialcolors.push( new THREE.MeshPhongMaterial( { color: 0x003333, emissive: 0x444444 } ));
+                materialcolors.push( new THREE.MeshPhongMaterial( { color: 0x7A67EE, emissive: 0x444444 } ));
+
+
+				var planeGeo = new THREE.PlaneBufferGeometry( 100.1, 100.1 );
+
+				// reflectors/mirrors
+
+				var geometry = new THREE.CircleBufferGeometry( 40, 64 );
+				var groundMirror = new THREE.Reflector( geometry, {
+					clipBias: 0.003,
+					textureWidth: WIDTH * window.devicePixelRatio,
+					textureHeight: HEIGHT * window.devicePixelRatio,
+					color: 0x777777,
+					recursion: 1
+				} );
+				//groundMirror.position.y = 0.5;
+                groundMirror.position.y = 0.5;
+				//groundMirror.rotateX( - Math.PI / 2 );
+                groundMirror.rotateX( - Math.PI / 2 );
+				//scene.add( groundMirror );
+
+				var geometry = new THREE.PlaneBufferGeometry( 100, 100 );
+				var verticalMirror = new THREE.Reflector( geometry, {
+					clipBias: 0.003,
+					textureWidth: WIDTH * window.devicePixelRatio,
+					textureHeight: HEIGHT * window.devicePixelRatio,
+					color: 0x889999,
+					recursion: 1
+				} );
+				verticalMirror.position.y = 50;
+				verticalMirror.position.z = - 50;
+				//scene.add( verticalMirror );
+
+
+				sphereGroup = new THREE.Object3D();
+				scene.add( sphereGroup );
+
+				//var geometry = new THREE.CylinderBufferGeometry( 0.1, 15 * Math.cos( Math.PI / 180 * 30 ), 0.1, 24, 1 );
+                var geometry = new THREE.CylinderBufferGeometry( 0.1, 11 * Math.cos( Math.PI / 180 * 30 ), 0.1, 24, 1 );
+				var material = new THREE.MeshPhongMaterial( { color: 0x551A8B, emissive: 0x444444 } );
+				var sphereCap = new THREE.Mesh( geometry, material );
+				sphereCap.position.y = - 15 * Math.sin( Math.PI / 180 * 30 ) - 0.05-4;
+				sphereCap.rotateX( - Math.PI );
+
+				//var geometry = new THREE.SphereBufferGeometry( 15, 24, 24, Math.PI / 2, Math.PI * 2, 0, Math.PI / 180 * 120 );
+                var geometry = new THREE.SphereBufferGeometry( 15, 150, 150, Math.PI / 8, Math.PI *2, 0, Math.PI / 180 * 140 );
+				var halfSphere = new THREE.Mesh( geometry, material );
+				halfSphere.add( sphereCap );
+				//halfSphere.rotateX( - Math.PI / 180 * 135 );
+			//	halfSphere.rotateZ( - Math.PI / 180 * 20 );
+				halfSphere.position.y = 7.5 + 15 * Math.sin( Math.PI / 180 * 30 ) + 10;
+
+				sphereGroup.add( halfSphere );
+
+				var geometry = new THREE.SphereBufferGeometry( 10, 250, 250 );;
+				var material = new THREE.MeshPhongMaterial( { color: 0x551A8B, emissive: 0x333333, flatShading: true } );
+				smallSphere = new THREE.Mesh( geometry, material );
+                smallSphere.position.y = halfSphere.position.y + 20;
+				//scene.add( smallSphere );
+                sphereGroup.add( smallSphere );
+
+                var geometry = new THREE.CylinderBufferGeometry( 2, 3, 6, 200 );
+                var material = new THREE.MeshPhongMaterial( { color: 0x551A8B } );
+
+                var cylinder = new THREE.Mesh( geometry, material );
+                cylinder.castShadow = true;
+                cylinder.receiveShadow = true;
+                cylinder.position.y = 55;
+               // cylinder.position.x = 20;
+               //scene.add( cylinder );
+               	 sphereGroup.add( cylinder );
+                // // walls
+				// var planeTop = new THREE.Mesh( planeGeo, new THREE.MeshPhongMaterial( { color: 0xffffff } ) );
+				// planeTop.position.y = 100;
+				// planeTop.rotateX( Math.PI / 2 );
+				// scene.add( planeTop );
+                //
+				var planeBottom = new THREE.Mesh( planeGeo, new THREE.MeshPhongMaterial( { color: 0x6C7B8B } ) );
+                planeBottom.rotateX( - Math.PI / 2 );
+                scene.add( planeBottom );
+                //
+				// var planeFront = new THREE.Mesh( planeGeo, new THREE.MeshPhongMaterial( { color: 0x7f7fff } ) );
+				// planeFront.position.z = 50;
+				// planeFront.position.y = 50;
+				// planeFront.rotateY( Math.PI );
+				// scene.add( planeFront );
+                //
+				// var planeRight = new THREE.Mesh( planeGeo, new THREE.MeshPhongMaterial( { color: 0x00ff00 } ) );
+				// planeRight.position.x = 50;
+				// planeRight.position.y = 50;
+				// planeRight.rotateY( - Math.PI / 2 );
+				// scene.add( planeRight );
+                //
+				// var planeLeft = new THREE.Mesh( planeGeo, new THREE.MeshPhongMaterial( { color: 0xff0000 } ) );
+				// planeLeft.position.x = - 50;
+				// planeLeft.position.y = 50;
+				// planeLeft.rotateY( Math.PI / 2 );
+				// scene.add( planeLeft );
+
+				// lights   new THREE.AmbientLight( 0xcccccc, 0.4 )
+
+                // lights
+
+                var ambientLight = new THREE.AmbientLight( 0xcccccc, 0.4 );
+                scene.add( ambientLight );
+
+                var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.7 );
+                directionalLight.position.set( 0, 5, 5 );
+                scene.add( directionalLight );
+
+                var d = 5;
+                directionalLight.castShadow = true;
+                directionalLight.shadow.camera.left = - d;
+                directionalLight.shadow.camera.right = d;
+                directionalLight.shadow.camera.top = d;
+                directionalLight.shadow.camera.bottom = - d;
+
+                directionalLight.shadow.camera.near = 1;
+                directionalLight.shadow.camera.far = 20;
+
+                directionalLight.shadow.mapSize.x = 1024;
+                directionalLight.shadow.mapSize.y = 1024;
+
+				// var mainLight = new THREE.AmbientLight( 0xffffff, 5 );
+                // //var mainLight = new THREE.PointLight( 0xffff00, 20, 250 );
+				// mainLight.position.y = 80;
+				// scene.add( mainLight );
+
+			// 	var greenLight = new THREE.PointLight( 0x00ff00, 20, 100 );
+			// 	greenLight.position.set( 0, -20, 0 );
+			// 	scene.add( greenLight );
+             //    //
+			// 	var redLight = new THREE.PointLight( 0xff0000, 50, 1000 );
+			// 	redLight.position.set( - 20, 0, 0 );
+			// //	scene.add( redLight );
+            //
+				var blueLight = new THREE.PointLight( 0x7f7fff, 4, 1000 );
+				blueLight.position.set( 20, 20, 0 );
+				scene.add( blueLight );
+
+			}
+
+			var count = 0;
+			function animate() {
+
+                count +=1;
+
+
+				requestAnimationFrame( animate );
+
+				var timer = Date.now() * 0.01;
+
+				//sphereGroup.rotation.z -= 0.011;
+               // sphereGroup.rotation.z = Math.PI/2;
+                sphereGroup.rotation.y = Math.PI/2;
+                sphereGroup.position.x = 5;
+                sphereGroup.position.y = 15;
+               // sphereGroup.material.color = 0x551A8B;
+
+                var children = sphereGroup.children;
+
+                for ( var i = 0; i < children.length; i ++ ) {
+
+                    //children[ i ].style.display = i === value ? 'block' : 'none';
+                    if(count%70 == 10){
+                        children[ i ].material.color = materialcolors[0 ].color;
+                    } else if(count%70 == 20){
+                        children[ i ].material.color = materialcolors[1 ].color;
+                    } else if(count%70 == 30){
+                        children[ i ].material.color = materialcolors[2 ].color;
+                    } else if(count%70 == 40){
+                        children[ i ].material.color = materialcolors[3 ].color;
+                    } else if(count%70 == 50){
+                        children[ i ].material.color = materialcolors[4 ].color;
+                    } else if(count%70 == 60){
+                        children[ i ].material.color = materialcolors[5 ].color;
+                    } else if(count%70 == 0){
+                        children[ i ].material.color = materialcolors[6 ].color;
+                    }
+
+                    //children[ i ].scale.x -=0.1;
+
+                }
+
+                //ball.material.color = ballpre.material.color;
+
+
+                // smallSphere.position.set(
+				// 	Math.cos( timer * 0.1 ) * 30,
+				// 	Math.abs( Math.cos( timer * 0.2 ) ) * 20 + 5,
+				// 	Math.sin( timer * 0.1 ) * 30
+				// );
+				// smallSphere.rotation.y = ( Math.PI / 2 ) - timer * 0.1;
+				// smallSphere.rotation.z = timer * 0.8;
+
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+	</body>
+</html>

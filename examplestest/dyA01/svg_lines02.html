@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js svg - lines</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				background-color: #000000;
+				margin: 0px;
+				overflow: hidden;
+			}
+
+			a {
+				color:#0078ff;
+			}
+
+			#info {
+				position: absolute;
+				top: 10px; width: 100%;
+				color: #ffffff;
+				padding: 5px;
+				font-family: Monospace;
+				font-size: 13px;
+				text-align: center;
+				z-index:100;
+			}
+
+			a:hover {
+				color: #0080ff;
+			}
+
+		</style>
+	</head>
+	<body>
+
+		<div id="info">
+
+		</div>
+
+		<script src="../js/three.js"></script>
+
+		<script src="../js/renderers/Projector.js"></script>
+		<script src="../js/renderers/SVGRenderer.js"></script>
+
+		<script>
+
+			var camera, scene, renderer;
+            var radius = 1;
+            var count = 4;
+            var rad = 2.5;
+
+            var balls = [];
+			init();
+			animate();
+
+			function init() {
+
+				camera = new THREE.PerspectiveCamera( 33, window.innerWidth / window.innerHeight, 0.1, 100 );
+				camera.position.x = 0;
+                camera.position.y = 0;
+                camera.position.z = 20;
+                camera.lookAt(0,0,0);
+
+				scene = new THREE.Scene();
+				scene.background = new THREE.Color( 0, 0, 0 );
+
+				renderer = new THREE.SVGRenderer();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				document.body.appendChild( renderer.domElement );
+
+                // lights
+
+                var ambientLight = new THREE.AmbientLight( 0xcccccc, 0.4 );
+                scene.add( ambientLight );
+
+                var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.7 );
+                directionalLight.position.set( 0, 5, 5 );
+                scene.add( directionalLight );
+
+                var d = 5;
+                directionalLight.castShadow = true;
+                directionalLight.shadow.camera.left = - d;
+                directionalLight.shadow.camera.right = d;
+                directionalLight.shadow.camera.top = d;
+                directionalLight.shadow.camera.bottom = - d;
+
+                directionalLight.shadow.camera.near = 1;
+                directionalLight.shadow.camera.far = 20;
+
+                directionalLight.shadow.mapSize.x = 1024;
+                directionalLight.shadow.mapSize.y = 1024;				//
+
+				//balls and line
+				var vertices = [];
+				var divisions = 50;
+
+
+				for ( var i = 0; i <= divisions; i ++ ) {
+
+					var v = ( i / divisions ) * ( Math.PI * 2 );
+
+					var x = Math.sin( v ) * rad;
+					var z = Math.cos( v ) * rad;
+					vertices.push( x, 0, z );
+				}
+
+				var geometry = new THREE.BufferGeometry();
+				geometry.addAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
+
+
+				for ( var i = 0; i <= count-1; i ++ ) {
+
+					var material = new THREE.LineDashedMaterial( {
+						//color: Math.random() * 0xffffff,
+                        color: '#ffffff',
+                        linewidth: 1,
+                        dashSize: 10,
+                        gapSize: 10
+					} );
+					var line = new THREE.Line( geometry, material );
+					line.rotation.z = Math.PI/count*i
+					scene.add( line );
+
+				}
+
+                var ballGeometry = new THREE.SphereBufferGeometry( 0.1, 32, 16 );
+                ballGeometry.translate( 0, 0.3, 0 );
+                var ballMaterial = new THREE.MeshLambertMaterial( { color: 0xff0000 } );
+
+                for ( var i = 0; i < count-1; i ++ ) {
+
+                    var ball = new THREE.Mesh( ballGeometry, ballMaterial );
+                    ball.castShadow = true;
+                    ball.userData.down = false;
+                    //
+                     ball.position.x = rad - i;
+                     ball.position.z = -1*(radius);
+
+
+                    scene.add( ball );
+                    balls.push( ball );
+                }
+
+                // var material = new THREE.LineDashedMaterial( {
+				// 	color: 'red',
+				// 	linewidth: 1,
+				// 	dashSize: 10,
+				// 	gapSize: 10
+				// } );
+				// var line = new THREE.Line( geometry, material );
+				// line.scale.setScalar( 2 );
+                // line.rotation.z = Math.PI/2;
+				// scene.add( line );
+
+				//
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			var counn = 0
+            var time =0;
+
+			function animate() {
+
+				//var count = 0;
+				//var time = performance.now() / 1000;
+                time += 0.5;
+
+				// scene.traverse( function ( child ) {
+                //
+				// 	//child.rotation.x = count + ( time / 3 );
+				// 	//child.rotation.z = count + ( time / 4 );
+                 //    child.rotation.y += 1;
+                //
+				// 	count ++;
+                //
+				// } );
+
+                for ( var i = 0; i < count-1; i++ ) {
+
+                    var ball = balls[i];
+                    ball.position.x = Math.sin( time ) * rad * Math.cos( Math.PI/count*i );
+                    ball.position.y = -0.3 + rad * Math.sin( Math.PI/count*i )*Math.sin( time );
+                    ball.position.z = Math.cos( time ) * rad;
+                   // ball.rotation.z = Math.PI/count*i;
+                    if (counn < 10){
+                        console.log("i; " + i + " , ball.position.y: " +ball.position.y);
+                        counn ++;
+					}
+
+                   // ball.position.z = radiusround * Math.sin( s ) + 3;
+                    //line.rotation.z = Math.PI/count*i
+
+                   // var s = i / radiusround * Math.PI * 2*2;
+                }
+
+                // var x = Math.sin( v ) * rad;
+                // var z = Math.cos( v ) * rad;
+
+				renderer.render( scene, camera );
+				requestAnimationFrame( animate );
+
+			}
+
+		</script>
+	</body>
+</html>

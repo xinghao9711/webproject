@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - materials - cube refraction [balls]</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				background:#777;
+				padding:0;
+				margin:0;
+				font-weight: bold;
+				overflow:hidden;
+			}
+
+			#info {
+				position: absolute;
+				top: 0px; width: 100%;
+				color: #ffffff;
+				padding: 5px;
+				font-family:Monospace;
+				font-size:13px;
+				text-align:center;
+				z-index:1000;
+			}
+
+			a { color: #ffffff; }
+
+			#webglmessage a { color:#da0 }
+		</style>
+	</head>
+
+	<body>
+
+		<script src="../js/three.js"></script>
+
+		<script src="../js/WebGL.js"></script>
+
+		<script>
+
+			if ( WEBGL.isWebGLAvailable() === false ) {
+
+				document.body.appendChild( WEBGL.getWebGLErrorMessage() );
+
+			}
+
+			var container;
+
+			var camera, scene, renderer;
+
+			var spheres = [];
+
+			var mouseX = 0, mouseY = 0;
+
+			var windowHalfX = window.innerWidth / 2;
+			var windowHalfY = window.innerHeight / 2;
+			var materialcolors = [];
+
+			document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+
+			init();
+			animate();
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 100000 );
+				camera.position.z = 3200;
+
+				scene = new THREE.Scene();
+				scene.background = new THREE.CubeTextureLoader()
+					.setPath( '../textures/cube/skybox/' )
+					.load( [ 'px.jpg', 'nx.jpg', 'py.jpg', 'ny.jpg', 'pz.jpg', 'nz.jpg' ] );
+
+				var geometry = new THREE.SphereBufferGeometry( 100, 32, 16 );
+
+				//var material = new THREE.MeshBasicMaterial( { color: 0xffffff, envMap: scene.background, refractionRatio: 0.95 } );
+                var material = new THREE.MeshBasicMaterial( { color: 0xffffff, envMap: scene.background, refractionRatio: 0.95 } );
+				material.envMap.mapping = THREE.CubeRefractionMapping;
+
+				for ( var i = 0; i < 5; i ++ ) {
+
+					var mesh = new THREE.Mesh( geometry, material );
+
+					mesh.position.x = i*5;
+					mesh.position.y = 0;
+					mesh.position.z = 0;
+
+					mesh.scale.x = mesh.scale.y = mesh.scale.z = Math.random() * 3 + 1;
+
+					scene.add( mesh );
+
+					spheres.push( mesh );
+
+				}
+
+                sphereGroup = new THREE.Object3D();
+                scene.add( sphereGroup );
+
+                //var geometry = new THREE.CylinderBufferGeometry( 0.1, 15 * Math.cos( Math.PI / 180 * 30 ), 0.1, 24, 1 );
+                var geometry = new THREE.CylinderBufferGeometry( 0.1, 11 * Math.cos( Math.PI / 180 * 30 ), 0.1, 24, 1 );
+                var material = new THREE.MeshPhongMaterial( { color: 0x551A8B, emissive: 0x444444 } );
+                var sphereCap = new THREE.Mesh( geometry, material );
+                sphereCap.position.y = - 15 * Math.sin( Math.PI / 180 * 30 ) - 0.05-4;
+                sphereCap.rotateX( - Math.PI );
+
+                //var geometry = new THREE.SphereBufferGeometry( 15, 24, 24, Math.PI / 2, Math.PI * 2, 0, Math.PI / 180 * 120 );
+                var geometry = new THREE.SphereBufferGeometry( 15, 150, 150, Math.PI / 8, Math.PI *2, 0, Math.PI / 180 * 140 );
+                var halfSphere = new THREE.Mesh( geometry, material );
+                halfSphere.add( sphereCap );
+                //halfSphere.rotateX( - Math.PI / 180 * 135 );
+                //	halfSphere.rotateZ( - Math.PI / 180 * 20 );
+                halfSphere.position.y = 7.5 + 15 * Math.sin( Math.PI / 180 * 30 ) + 10;
+
+                sphereGroup.add( halfSphere );
+                sphereGroup.rotation.z = Math.PI/2;
+                sphereGroup.position.x = 200;
+                sphereGroup.position.y = 140;
+                sphereGroup.position.z = 2500;
+                sphereGroup.scale.setScalar(4);
+
+                var geometry = new THREE.SphereBufferGeometry( 10, 250, 250 );;
+                var material = new THREE.MeshPhongMaterial( { color: 0x551A8B, emissive: 0x333333, flatShading: true } );
+                smallSphere = new THREE.Mesh( geometry, material );
+                smallSphere.position.y = halfSphere.position.y + 20;
+                //scene.add( smallSphere );
+                sphereGroup.add( smallSphere );
+
+                var geometry = new THREE.CylinderBufferGeometry( 2, 3, 6, 200 );
+                var material = new THREE.MeshPhongMaterial( { color: 0x551A8B } );
+
+                var cylinder = new THREE.Mesh( geometry, material );
+                cylinder.castShadow = true;
+                cylinder.receiveShadow = true;
+                cylinder.position.y = 55;
+                // cylinder.position.x = 20;
+                //scene.add( cylinder );
+                sphereGroup.add( cylinder );				//
+                materialcolors.push( new THREE.MeshPhongMaterial( { color: 0xff0000, emissive: 0x444444 } ));
+                materialcolors.push( new THREE.MeshPhongMaterial( { color: 0xff9900, emissive: 0x444444 } ));
+                materialcolors.push( new THREE.MeshPhongMaterial( { color: 0xffff00, emissive: 0x444444 } ));
+                materialcolors.push( new THREE.MeshPhongMaterial( { color: 0x66ff00, emissive: 0x444444 } ));
+                materialcolors.push( new THREE.MeshPhongMaterial( { color: 0x3333ff, emissive: 0x444444 } ));
+                materialcolors.push( new THREE.MeshPhongMaterial( { color: 0x003333, emissive: 0x444444 } ));
+                materialcolors.push( new THREE.MeshPhongMaterial( { color: 0x7A67EE, emissive: 0x444444 } ));
+
+                var ambientLight = new THREE.AmbientLight( 0xcccccc, 0.4 );
+                scene.add( ambientLight );
+
+                var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.7 );
+                directionalLight.position.set( 0, 5, 5 );
+                scene.add( directionalLight );
+
+                var d = 5;
+                directionalLight.castShadow = true;
+                directionalLight.shadow.camera.left = - d;
+                directionalLight.shadow.camera.right = d;
+                directionalLight.shadow.camera.top = d;
+                directionalLight.shadow.camera.bottom = - d;
+
+                directionalLight.shadow.camera.near = 1;
+                directionalLight.shadow.camera.far = 20;
+
+                directionalLight.shadow.mapSize.x = 1024;
+                directionalLight.shadow.mapSize.y = 1024;
+
+
+                	renderer = new THREE.WebGLRenderer();
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				container.appendChild( renderer.domElement );
+
+				//
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+			}
+
+			function onWindowResize() {
+
+				windowHalfX = window.innerWidth / 2;
+				windowHalfY = window.innerHeight / 2;
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			function onDocumentMouseMove( event ) {
+
+				mouseX = ( event.clientX - windowHalfX ) * 10;
+				mouseY = ( event.clientY - windowHalfY ) * 10;
+
+			}
+
+			//
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				render();
+
+			}
+
+
+            var count1 = 0;
+            var count2 = 0;
+            var count3 = 0;
+            var count4 = 0;
+            var count5 = 0;
+            var scaleMax = 400;
+
+
+
+			var log = 1;
+
+			function renderspheres(k,timer){
+                var r = 800;
+                for ( var j = 0; j < spheres.length; j ++ ) {
+                //for ( var j = 0; j < 2; j ++ ) {
+
+                    var sphere = spheres[ j ];
+
+
+                    if (j==0){
+                        sphere.position.y = sphereGroup.position.y +500-count1*2+j*1000;
+                        if(count1 < scaleMax){
+                            sphere.scale.setScalar(count1/200);
+						}
+
+                        sphere.position.x = sphereGroup.position.x - 350-count1;
+                        // if(sphere.position.y < 2000){
+                        //    count1 = 1;
+                        // }
+					}else {
+                        //sphere.position.y = spheres[ j -1].position.y + 200 * j;
+                        sphere.position.y = sphereGroup.position.y + 2500;
+                        if (spheres[ j -1].position.y <  sphereGroup.position.y - 400){
+
+                            if(j == 1){
+                                count2 += 1;
+                                sphere.position.y = sphereGroup.position.y +500 - count2*2;
+                                if(count2 < scaleMax){
+                                    sphere.scale.setScalar(count2/200);
+                                }
+
+                                sphere.position.x = sphereGroup.position.x - 350-count2*2;
+                                // if(sphere.position.y < 2000){
+                                //     count2 = 2;
+                                // }
+
+							} else if (j==2){
+                                count3 += 1;
+                                sphere.position.y = sphereGroup.position.y +500 - count3*2;
+                                if(count3 < scaleMax){
+                                    sphere.scale.setScalar(count3/200);
+                                }
+
+                                sphere.position.x = sphereGroup.position.x - 350-count3*2;
+                                // if(sphere.position.y < 2000){
+                                //     count3 = 0;
+                                // }
+                            } else if (j==3){
+                                count4 += 1;
+                                sphere.position.y = sphereGroup.position.y +500 - count4*2;
+                                if(count4 < scaleMax){
+                                    sphere.scale.setScalar(count4/200);
+                                }
+
+                                sphere.position.x = sphereGroup.position.x - 350-count4*2;
+                                // if(sphere.position.y < 2000){
+                                //     count4 = 0;
+                                // }
+                            }
+
+                           // // sphere.position.y = spheres[ j -1].position.y  + 1200;
+                           //  sphere.position.y = sphereGroup.position.y +800 - count[j]*2;
+                           // // sphere.scale.setScalar((count-j*350)/200);
+                           //  sphere.scale.setScalar(count[j]/200);
+                           //  sphere.position.x = sphereGroup.position.x - 600-count[j]*2;
+							// // if(log == 1){
+                             //    console.log("j: " + j);
+                             //    console.log("spheres[ j -1].position.y: " + spheres[ j -1].position.y);
+                             //    console.log("sphere.position.y: " + sphere.position.y);
+                             //    console.log("sphereGroup.position.y: " + sphereGroup.position.y);
+                             //    log = 0;
+							// }
+
+
+
+						}
+ 					}
+
+                    sphere.material.color = materialcolors[k].color;
+                }
+			}
+
+			function render() {
+
+				var timer = 0.001 * Date.now();
+
+
+                count1 += 1;
+
+
+                var children = sphereGroup.children;
+
+                for ( var i = 0; i < children.length; i ++ ) {
+                   // console.log("count: " + count);
+
+                    //children[ i ].style.display = i === value ? 'block' : 'none';
+                    if(count1%70 == 10){
+                        children[ i ].material.color = materialcolors[0 ].color;
+                        renderspheres(0	,timer);
+
+                    } else if(count1%70 == 20){
+                        children[ i ].material.color = materialcolors[1 ].color;
+                        renderspheres(1	,timer);
+
+
+                    } else if(count1%70 == 30){
+                        children[ i ].material.color = materialcolors[2 ].color;
+                        renderspheres(2	,timer);
+
+
+                    } else if(count1%70 == 40){
+                        children[ i ].material.color = materialcolors[3 ].color;
+                        renderspheres(3	,timer);
+
+                    } else if(count1%70 == 50){
+                        children[ i ].material.color = materialcolors[4 ].color;
+                        renderspheres(4	,timer);
+
+                    } else if(count1%70 == 60){
+                        children[ i ].material.color = materialcolors[5 ].color;
+                        renderspheres(5	,timer);
+                    } else if(count1%70 == 0){
+                        children[ i ].material.color = materialcolors[6 ].color;
+                        renderspheres(6	,timer);
+
+                    }
+
+
+
+                }
+
+
+				camera.lookAt( scene.position );
+
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+
+	</body>
+</html>

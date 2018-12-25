@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>圆球动画</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				background:#777;
+				padding:0;
+				margin:0;
+				overflow:hidden;
+				font-family: Monospace;
+			}
+
+			#info {
+				position: absolute;
+				z-index: 2;
+				top: 0px;
+				width: 100%;
+				color: #ffffff;
+				padding: 5px;
+
+				font-size:13px;
+				text-align:center;
+				font-weight: bold;
+			}
+
+			a {
+				color: #ffffff;
+			}
+
+			#overlay {
+				position: absolute;
+				z-index: 1;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height:100%;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				opacity: 1;
+				background-color: #000000;
+				color: #ffffff;
+			}
+
+			#overlay > div {
+				text-align: center;
+			}
+
+			#overlay > div > button {
+				height: 20px;
+				width: 100px;
+				background: transparent;
+				color: #ffffff;
+				outline: 1px solid #ffffff;
+				border: 0px;
+				cursor: pointer;
+			}
+
+			#overlay > div > p {
+				color: #777777;
+				font-size: 12px;
+			}
+
+		</style>
+
+		<script src="../js/three.js"></script>
+		<script src="../js/WebGL.js"></script>
+		<script src="../js/objects/Reflector.js"></script>
+		<script src="../js/controls/OrbitControls.js"></script>
+
+	</head>
+<body>
+
+	<div id="overlay">
+		<div>
+			<button id="startButton">Click to Play</button>
+			<p>Automatic audio playback requires a user interaction.</p>
+		</div>
+	</div>
+	<div id="container"></div>
+
+
+	<script>
+
+	if ( WEBGL.isWebGLAvailable() === false ) {
+
+		document.body.appendChild( WEBGL.getWebGLErrorMessage() );
+
+	}
+
+	var scene, camera, renderer;
+    var count = 10;
+    var counthead = 10;
+    var radius = 5;
+    var radiushead = 1.6;
+    var countround = 20;
+    var radiusround = 1.6;
+
+    var objects = [];
+
+    var objectsHead = [];
+
+    var objectsRound = [];
+    // scene size
+    var WIDTH = window.innerWidth;
+    var HEIGHT = window.innerHeight;
+
+	var startButton = document.getElementById( 'startButton' );
+	startButton.addEventListener( 'click', init );
+
+	function init() {
+
+		var overlay = document.getElementById( 'overlay' );
+		overlay.remove();
+
+		var container = document.getElementById( 'container' );
+
+		scene = new THREE.Scene();
+
+		//
+
+		camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 100 );
+		camera.position.set( 7, 6, 10 );
+
+		// lights
+
+		var ambientLight = new THREE.AmbientLight( 0xcccccc, 0.4 );
+		scene.add( ambientLight );
+
+		var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.7 );
+		directionalLight.position.set( 0, 5, 5 );
+		scene.add( directionalLight );
+
+		var d = 5;
+		directionalLight.castShadow = true;
+		directionalLight.shadow.camera.left = - d;
+		directionalLight.shadow.camera.right = d;
+		directionalLight.shadow.camera.top = d;
+		directionalLight.shadow.camera.bottom = - d;
+
+		directionalLight.shadow.camera.near = 1;
+		directionalLight.shadow.camera.far = 20;
+
+		directionalLight.shadow.mapSize.x = 1024;
+		directionalLight.shadow.mapSize.y = 1024;
+
+		// audio
+
+		var audioLoader = new THREE.AudioLoader();
+
+		var listener = new THREE.AudioListener();
+		camera.add( listener );
+
+		// floor
+
+		var floorGeometry = new THREE.PlaneBufferGeometry( 11, 11 );
+		var floorMaterial = new THREE.MeshLambertMaterial( { color: 0x4676b6 } );
+
+		var floor = new THREE.Mesh( floorGeometry, floorMaterial );
+		floor.rotation.x = Math.PI * - 0.5;
+		floor.receiveShadow = true;
+		scene.add( floor );
+
+		// objects
+
+
+
+		var ballGeometry = new THREE.SphereBufferGeometry( 0.3, 32, 16 );
+		ballGeometry.translate( 0, 0.3, 0 );
+		var ballMaterial = new THREE.MeshLambertMaterial( { color: 0xcccccc } );
+
+		// create objects when audio buffer is loaded
+
+		audioLoader.load( '../sounds/ping_pong.mp3', function ( buffer ) {
+
+		    //移动的小球
+			for ( var i = 0; i < count; i ++ ) {
+
+				var s = i / count * Math.PI * 2;
+
+				var ball = new THREE.Mesh( ballGeometry, ballMaterial );
+				ball.castShadow = true;
+				ball.userData.down = false;
+
+				// ball.position.x = radius;
+				// ball.position.z = radius;
+                ball.position.x = radius - i*0.4;
+                ball.position.z = -1*(radius)-.001;
+
+				var audio = new THREE.PositionalAudio( listener );
+				audio.setBuffer( buffer );
+				ball.add( audio );
+
+				scene.add( ball );
+				objects.push( ball );
+			}
+
+			//圆形
+            for ( var i = 0; i < counthead; i ++ ) {
+
+                var s = i / counthead * Math.PI * 2;
+
+                var ball = new THREE.Mesh( ballGeometry, ballMaterial );
+                ball.castShadow = true;
+                ball.userData.down = false;
+
+                 ball.position.x = radiushead * Math.cos( s );
+                 ball.position.y = radiushead * Math.sin( s )+3;
+                //ball.position.x = radiushead - i*0.4;
+                ball.position.z = 0;
+
+                // var audio = new THREE.PositionalAudio( listener );
+                // audio.setBuffer( buffer );
+                // ball.add( audio );
+
+                scene.add( ball );
+                objectsHead.push( ball );
+            }
+
+            //螺旋线
+            for ( var i = 0; i < countround; i ++ ) {
+
+                var s = i / countround * Math.PI * 2*2;
+
+                var ball = new THREE.Mesh( ballGeometry, ballMaterial );
+                ball.castShadow = true;
+                ball.userData.down = false;
+
+                ball.position.x = radiusround * Math.cos( s );
+                ball.position.y = 5 - i*0.2;
+                ball.position.z = radiusround * Math.sin( s ) + 3;
+
+                scene.add( ball );
+                objectsRound.push( ball );
+            }
+
+            //单独的小球
+          //   var ballone = new THREE.Mesh( ballGeometry, ballMaterial );
+          //   ballone.castShadow = true;
+          //   ballone.userData.down = false;
+          //
+          //   // ball.position.x = radius * Math.cos( s );
+          //   // ball.position.z = radius * Math.sin( s );
+          //   ballone.position.x = 5;
+          //   ballone.position.z = 0;
+          //   ballone.position.y = 2;
+          //
+          //  // var audio = new THREE.PositionalAudio( listener );
+          //  // audio.setBuffer( buffer );
+          // //  ball.add( audio );
+          //
+          //   scene.add( ballone );
+
+			animate();
+
+		} );
+
+		var geometry2 = new THREE.PlaneBufferGeometry( 100, 100 );
+        var verticalMirror = new THREE.Reflector( geometry2, {
+            clipBias: 0.003,
+            textureWidth: WIDTH * window.devicePixelRatio,
+            textureHeight: HEIGHT * window.devicePixelRatio,
+            color: 0x88ff00,
+            recursion: 1
+        } );
+         verticalMirror.position.y = 10;
+         verticalMirror.position.z = - 10;
+         scene.add( verticalMirror );
+
+        //
+
+		renderer = new THREE.WebGLRenderer( { antialias: true } );
+		renderer.shadowMap.enabled = true;
+		renderer.setSize( window.innerWidth, window.innerHeight );
+		renderer.setClearColor( 0x000000 );
+		renderer.setPixelRatio( window.devicePixelRatio );
+		container.appendChild( renderer.domElement );
+
+		//
+
+		var controls = new THREE.OrbitControls( camera, renderer.domElement );
+		controls.minDistance = 1;
+		controls.maxDistance = 25;
+
+		//
+
+		window.addEventListener( 'resize', onWindowResize, false );
+
+	}
+
+	function onWindowResize() {
+
+		camera.aspect = window.innerWidth / window.innerHeight;
+		camera.updateProjectionMatrix();
+
+		renderer.setSize( window.innerWidth, window.innerHeight );
+
+	}
+
+	function animate() {
+
+		requestAnimationFrame( animate );
+
+		render();
+
+	}
+
+	var speed = 1.7;
+	var height = 3;
+	var offset = 0.5;
+	var time = 0;
+
+	var delmove = 0.03;
+    var delstop = 0;
+
+	function render() {
+
+		time += 0.02;
+
+		for ( var i = 0; i < objects.length; i ++ ) {
+			var ball = objects[ i ];
+
+            //if((Math.abs((-5)-ball.position.x) < 0.001) && (Math.abs((-5)-ball.position.z) < 0.001)) {
+            if(ball.position.x > -5 && ball.position.z < -5) {
+                // delx = 0;
+                // delz = 0.01;
+                ball.position.x -= delmove;
+                ball.position.z += delstop;
+           // } else if ((Math.abs((-5)-ball.position.x) < 0.001) && (Math.abs((5)-ball.position.z) < 0.001)){
+            } else if ( ball.position.x < -5 && ball.position.z < 5){
+                // delx = 0.01;
+                // delz = 0;
+                ball.position.x += delstop;
+                ball.position.z += delmove;
+            // } else if ((Math.abs((5)-ball.position.x) < 0.001) && (Math.abs((5)-ball.position.z) < 0.001)){
+            } else if ( ball.position.x < 5 && ball.position.z > 5){
+                // delx = 0;
+                // delz = -0.01;
+                ball.position.x += delmove;
+                ball.position.z += delstop;
+           // } else if ((Math.abs((5)-ball.position.x) < 0.001) && (Math.abs((-5)-ball.position.z) < 0.001)){
+            } else if ( ball.position.x >= 5 && ball.position.z > -5){
+           //      delx = -0.01;
+           //      delz = 0;
+                ball.position.x += delstop;;
+                ball.position.z -= delmove;
+            }
+           // console.log("x: " + ball.position.x  + ", z: " + ball.position.z );
+            // ball.position.x += delx;
+            // ball.position.z += delz;
+
+
+
+			var previousHeight = ball.position.y;
+			ball.position.y = Math.abs( Math.sin( i * offset + ( time * speed ) ) * height );
+
+			if ( ball.position.y < previousHeight ) {
+
+				ball.userData.down = true;
+
+			} else {
+
+				if ( ball.userData.down === true ) {
+
+					// ball changed direction from down to up
+
+					var audio = ball.children[ 0 ];
+					audio.play(); // play audio with perfect timing when ball hits the surface
+					ball.userData.down = false;
+				}
+			}
+		}
+
+        // var s = i / counthead * Math.PI * 2;
+        //
+        // var ball = new THREE.Mesh( ballGeometry, ballMaterial );
+        // ball.castShadow = true;
+        // ball.userData.down = false;
+        //
+        // ball.position.x = radiushead * Math.cos( s );
+        // ball.position.y = radiushead * Math.sin( s )+3;
+        // //ball.position.x = radiushead - i*0.4;
+        // ball.position.z = 0;
+
+
+
+		//圆形旋转
+        for (var j = 0; j < objectsHead.length; j ++ ){
+            var s = j / objectsHead.length * Math.PI * 2 + time*1;
+             var ball2 = objectsHead[j];
+           //ball2.rotation.x +=0.1;
+            ball2.position.x = radiushead * Math.cos( s );
+            ball2.position.y = radiushead * Math.sin( s )+3;
+			//            console.log("ad");
+        }
+
+        //螺旋线旋转
+        //螺旋线
+        for ( var i = 0; i < countround; i ++ ) {
+
+           // var s = j / objectsRound.length * Math.PI * 2 + time*1;
+            var s = i / objectsRound.length * Math.PI * 2 + time*1;
+            var ball = objectsRound[i];
+            ball.position.x = radiusround * Math.cos( s );
+            //ball.position.y = 5 - i*0.2;
+            ball.position.z = radiusround * Math.sin( s ) + 3;
+
+            var s = i / radiusround * Math.PI * 2*2;
+        }
+
+		renderer.render( scene, camera );
+
+	}
+
+	</script>
+
+</body>
+</html>

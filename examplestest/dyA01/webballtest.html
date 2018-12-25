@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>圆球动画</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			background:#777;
+			padding:0;
+			margin:0;
+			overflow:hidden;
+			font-family: Monospace;
+		}
+
+		#info {
+			position: absolute;
+			z-index: 2;
+			top: 0px;
+			width: 100%;
+			color: #ffffff;
+			padding: 5px;
+
+			font-size:13px;
+			text-align:center;
+			font-weight: bold;
+		}
+
+		a {
+			color: #ffffff;
+		}
+
+		#overlay {
+			position: absolute;
+			z-index: 1;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height:100%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			opacity: 1;
+			background-color: #000000;
+			color: #ffffff;
+		}
+
+		#overlay > div {
+			text-align: center;
+		}
+
+		#overlay > div > button {
+			height: 20px;
+			width: 100px;
+			background: transparent;
+			color: #ffffff;
+			outline: 1px solid #ffffff;
+			border: 0px;
+			cursor: pointer;
+		}
+
+		#overlay > div > p {
+			color: #777777;
+			font-size: 12px;
+		}
+
+	</style>
+
+	<script src="../js/three.js"></script>
+	<script src="../js/WebGL.js"></script>
+	<script src="../js/objects/Reflector.js"></script>
+	<script src="../js/controls/OrbitControls.js"></script>
+
+</head>
+<body onload="init();">
+
+<div id="overlay">
+	<div>
+		<button id="startButton">Click to Play</button>
+		<p>Automatic audio playback requires a user interaction.</p>
+	</div>
+</div>
+<div id="container"></div>
+
+
+<script>
+
+    if ( WEBGL.isWebGLAvailable() === false ) {
+
+        document.body.appendChild( WEBGL.getWebGLErrorMessage() );
+
+    }
+
+    var scene, camera, renderer;
+    var count = 10;
+    var counthead = 10;
+    var radius = 5;
+    var radiushead = 1.6;
+    var countround = 20;
+    var radiusround = 1.6;
+
+    var objects = [];
+
+    var objectsHead = [];
+
+    var objectsRound = [];
+    // scene size
+    var WIDTH = window.innerWidth;
+    var HEIGHT = window.innerHeight;
+
+    // var startButton = document.getElementById( 'startButton' );
+    // startButton.addEventListener( 'click', init );
+
+    function init() {
+
+        var overlay = document.getElementById( 'overlay' );
+        overlay.remove();
+
+        var container = document.getElementById( 'container' );
+
+        scene = new THREE.Scene();
+
+        //
+
+        camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 100 );
+        camera.position.set( 7, 40, 30 );
+
+        camera.lookAt(7, 20, 0 );
+
+        // lights
+
+        var ambientLight = new THREE.AmbientLight( 0xcccccc, 0.4 );
+        scene.add( ambientLight );
+
+        var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.7 );
+        directionalLight.position.set( 0, 5, 5 );
+        scene.add( directionalLight );
+
+        var d = 5;
+        directionalLight.castShadow = true;
+        directionalLight.shadow.camera.left = - d;
+        directionalLight.shadow.camera.right = d;
+        directionalLight.shadow.camera.top = d;
+        directionalLight.shadow.camera.bottom = - d;
+
+        directionalLight.shadow.camera.near = 1;
+        directionalLight.shadow.camera.far = 20;
+
+        directionalLight.shadow.mapSize.x = 1024;
+        directionalLight.shadow.mapSize.y = 1024;
+
+        // audio
+
+        var audioLoader = new THREE.AudioLoader();
+
+        var listener = new THREE.AudioListener();
+        camera.add( listener );
+
+        // floor
+
+        var floorGeometry = new THREE.PlaneBufferGeometry( 50, 50 );
+        var floorMaterial = new THREE.MeshLambertMaterial( { color: 0x4676b6 } );
+
+        var floor = new THREE.Mesh( floorGeometry, floorMaterial );
+        floor.rotation.x = Math.PI * - 0.5;
+        floor.position.y = -5;
+        floor.receiveShadow = true;
+        scene.add( floor );
+
+        // var floorGeometry = new THREE.PlaneBufferGeometry( 100, 100 );
+        // var floorMaterial = new THREE.MeshLambertMaterial( { color: 0x4676b6 } );
+        //
+        // var floor = new THREE.Mesh( floorGeometry, floorMaterial );
+        // floor.rotation.x = Math.PI * - 0.5;
+        // floor.position.y = -5;
+        // floor.receiveShadow = true;
+        // scene.add( floor );
+
+
+
+        // objects
+
+        var ballGeometry = new THREE.SphereBufferGeometry( 0.3, 32, 16 );
+        ballGeometry.translate( 0, 0.3, 0 );
+        var ballMaterial = new THREE.MeshLambertMaterial( { color: 0xcccccc } );
+
+            //移动的小球
+            for ( var i = 0; i < count; i ++ ) {
+
+                var s = i / count * Math.PI * 2;
+
+                var ball = new THREE.Mesh( ballGeometry, ballMaterial );
+                ball.castShadow = true;
+                ball.userData.down = false;
+
+                ball.position.x = radius - i*0.4;
+                ball.position.z = -1*(radius)-.001;
+
+
+                scene.add( ball );
+                objects.push( ball );
+            }
+
+        // var geometry2 = new THREE.PlaneBufferGeometry( 100, 100 );
+        // var verticalMirror = new THREE.Reflector( geometry2, {
+        //     clipBias: 0.003,
+        //     textureWidth: WIDTH * window.devicePixelRatio,
+        //     textureHeight: HEIGHT * window.devicePixelRatio,
+        //     color: 0x88ff00,
+        //     recursion: 1
+        // } );
+        // verticalMirror.position.y = 10;
+        // verticalMirror.position.z = - 10;
+        // scene.add( verticalMirror );
+
+        var textureLoader = new THREE.TextureLoader();
+       // var moonGeometry = new THREE.SphereBufferGeometry( 5, 16, 16 );
+        var moonGeometry = new THREE.PlaneBufferGeometry( 20, 20 );
+        var moonMaterial = new THREE.MeshPhongMaterial( {
+            shininess: 5,
+            map: textureLoader.load( 'img/10.jpg' )
+        } );
+        moon = new THREE.Mesh( moonGeometry, moonMaterial );
+        scene.add( moon );       //
+
+        renderer = new THREE.WebGLRenderer( { antialias: true } );
+        renderer.shadowMap.enabled = true;
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        renderer.setClearColor( 0x000000 );
+        renderer.setPixelRatio( window.devicePixelRatio );
+        container.appendChild( renderer.domElement );
+
+
+        animate();
+
+        var controls = new THREE.OrbitControls( camera, renderer.domElement );
+        controls.minDistance = 1;
+        controls.maxDistance = 25;
+
+        window.addEventListener( 'resize', onWindowResize, false );
+
+    }
+
+    function onWindowResize() {
+
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+
+        renderer.setSize( window.innerWidth, window.innerHeight );
+
+    }
+
+    function animate() {
+
+        requestAnimationFrame( animate );
+
+        render();
+
+    }
+
+    var speed = 1.7;
+    var height = 3;
+    var offset = 0.5;
+    var time = 0;
+
+    var delmove = 0.03;
+    var delstop = 0;
+
+    function render() {
+
+        time += 0.02;
+
+         for ( var i = 0; i < objects.length; i ++ ) {
+             var ball = objects[i];
+             var material = ball.material;
+
+
+             // var attributes = geometry.attributes;
+             //
+              var colors = material.color;
+              if(delstop ==0){
+                 // material.color = { color: 0xff00b6 };
+                  console.log(colors);
+                  delstop = 1;
+			  }
+
+         }
+        //
+        //     //if((Math.abs((-5)-ball.position.x) < 0.001) && (Math.abs((-5)-ball.position.z) < 0.001)) {
+        //     if(ball.position.x > -5 && ball.position.z < -5) {
+        //         // delx = 0;
+        //         // delz = 0.01;
+        //         ball.position.x -= delmove;
+        //         ball.position.z += delstop;
+        //         // } else if ((Math.abs((-5)-ball.position.x) < 0.001) && (Math.abs((5)-ball.position.z) < 0.001)){
+        //     } else if ( ball.position.x < -5 && ball.position.z < 5){
+        //         // delx = 0.01;
+        //         // delz = 0;
+        //         ball.position.x += delstop;
+        //         ball.position.z += delmove;
+        //         // } else if ((Math.abs((5)-ball.position.x) < 0.001) && (Math.abs((5)-ball.position.z) < 0.001)){
+        //     } else if ( ball.position.x < 5 && ball.position.z > 5){
+        //         // delx = 0;
+        //         // delz = -0.01;
+        //         ball.position.x += delmove;
+        //         ball.position.z += delstop;
+        //         // } else if ((Math.abs((5)-ball.position.x) < 0.001) && (Math.abs((-5)-ball.position.z) < 0.001)){
+        //     } else if ( ball.position.x >= 5 && ball.position.z > -5){
+        //         //      delx = -0.01;
+        //         //      delz = 0;
+        //         ball.position.x += delstop;;
+        //         ball.position.z -= delmove;
+        //     }
+        //     // console.log("x: " + ball.position.x  + ", z: " + ball.position.z );
+        //     // ball.position.x += delx;
+        //     // ball.position.z += delz;
+
+
+
+
+        renderer.render( scene, camera );
+
+    }
+
+</script>
+
+</body>
+</html>
