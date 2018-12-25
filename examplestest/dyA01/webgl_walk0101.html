@@ -95,7 +95,7 @@
                 materialcolors.push( new THREE.MeshPhongMaterial( { color: 0x7A67EE, emissive: 0x444444 } ));
 
 
-				var planeGeo = new THREE.PlaneBufferGeometry( 100.1, 100.1 );
+				var planeGeo = new THREE.PlaneBufferGeometry( 500, 500);
 
 				// reflectors/mirrors
 
@@ -134,16 +134,19 @@
                 robot01.vy = 0;
 
 
-                robot01.leftLeg = initrobotLeg(0,50,0);
-                robot01.rightLeg = initrobotLeg(5,50,0);
-                robot01.walkspeed = 5;
+                robot01.leftLeg = initrobotLeg(0,40,0);
+                robot01.rightLeg = initrobotLeg(5,40,0);
+                robot01.walkspeed = 1/2;
                // console.log("sphereGroup.leftLeg: ", sphereGroup.leftLeg);
                 scene.add( robot01.leftLeg );
                 scene.add( robot01.rightLeg );
 
 				floorBottom = new THREE.Mesh( planeGeo, new THREE.MeshPhongMaterial( { color: 0x6C7B8B } ) );
                 floorBottom.rotateX( - Math.PI / 2 );
+                floorBottom.position.y = 10;
                 scene.add( floorBottom );
+
+               //
                 //
 				// var planeFront = new THREE.Mesh( planeGeo, new THREE.MeshPhongMaterial( { color: 0x7f7fff } ) );
 				// planeFront.position.z = 50;
@@ -208,7 +211,7 @@
 
 			function initrobotLeg(x,y,z){
 
-			    console.log("init leg, z: ",z);
+			 //   console.log("init leg, z: ",z);
 
                 var sphereGroupLeg = new THREE.Object3D();
 
@@ -250,8 +253,13 @@
                 var geometry = new THREE.SphereBufferGeometry( 2, 250, 250 );
                 var material = new THREE.MeshPhongMaterial( { color: 0x551A8B, emissive: 0x333333, flatShading: true } );
                 var footSphere = new THREE.Mesh( geometry, material );
+                footSphere.position.x = 0;
+                footSphere.position.y = 0;
+                footSphere.position.z = 0;
                 sphereGroupLeg.add( footSphere );
                 sphereGroupLeg.footSphere = footSphere;
+
+                walk(sphereGroupLeg,0);
 
                 return sphereGroupLeg;
 
@@ -259,106 +267,18 @@
 
 			var count = 0;
 			//var upstep = 0.01;
+			var outflg = 1;
 			function animate() {
 
                 count += robot01.walkspeed;
 
-                //robot01.leftLeg.topSphere.position.z +=0.1;
-
-
 				requestAnimationFrame( animate );
 
 				var timer = Date.now() * 0.01;
-
+                setVelocity(robot01);
                 walk(robot01.leftLeg,0);
                 walk(robot01.rightLeg,Math.PI);
-                //walk(robot01.rightLeg,0);
-
-              //   sphereGroup.rotation.y = Math.PI/2;
-              //   sphereGroup.position.x = 5;
-              //   sphereGroup.position.y = 15;
-              //   var offset = Math.PI/2;
-              //
-              //   var children = sphereGroup.children;
-              //
-              //   var cylinderUP = sphereGroup.cylinderUP;
-              //   var topSphere = sphereGroup.topSphere;
-              //   //cylinderUP.rotation.x = -(Math.sin(count/100) * 45 + 90) * Math.PI / 180 - Math.PI/2;
-              //  //cylinderUP.rotation.x = (Math.sin(count/100) * 45) * Math.PI / 180 + Math.PI;  //OK
-              //   //cylinderUP.rotation.x = Math.PI/4 * Math.sin(count/100) + Math.PI;  //OK    //(Math.sin(cyc) * 45 + 90) * Math.PI / 180
-              //   cylinderUP.rotation.x = (Math.sin(count/100) * 45 + 90) * Math.PI / 180  + Math.PI/2;  //OK    //(Math.sin(cyc) * 45 + 90) * Math.PI / 180
-              //   //cylinderDown.rotation.x =  cylinderUP.rotation.x + (Math.PI/4 * Math.sin(count/100) + Math.PI/4);
-              //   cylinderUP.position.y = topSphere.position.y + cylinderUP.geometry.parameters.height/2*Math.cos(cylinderUP.rotation.x);
-              //   cylinderUP.position.z = topSphere.position.z + cylinderUP.geometry.parameters.height/2*Math.sin(cylinderUP.rotation.x);
-              //
-              //   var cylinderUPRight = sphereGroup.cylinderUPRight;
-              //   var topSphereRight = sphereGroup.topSphereRight;
-              //   topSphereRight.position.z = topSphere.position.z + 0;
-              //   //cylinderUPRight.rotation.x = -(Math.sin(count/100 + offset) * 45 + 90) * Math.PI / 180 - Math.PI/2;
-              //   cylinderUPRight.rotation.x =(Math.sin(-count/100) * 45 + 90) * Math.PI / 180  + Math.PI/2;
-              //   //cylinderUPRight.rotation.x =(Math.sin(count/100) * 45 + 90) * Math.PI / 180  + Math.PI/2;
-              //  // cylinderUPRight.rotation.x = cylinderUP.rotation.x + Math.PI;
-              //   cylinderUPRight.position.y = topSphereRight.position.y + cylinderUPRight.geometry.parameters.height/2*Math.cos(cylinderUPRight.rotation.x);
-              //   cylinderUPRight.position.z = topSphereRight.position.z + cylinderUPRight.geometry.parameters.height/2*Math.sin(cylinderUPRight.rotation.x);
-              //
-              //
-              //
-              //
-              //   var smallSphere = sphereGroup.smallSphere;
-              //   smallSphere.position.y = cylinderUP.position.y + cylinderUP.geometry.parameters.height/2*Math.cos(cylinderUP.rotation.x);
-              //   smallSphere.position.z = cylinderUP.position.z + cylinderUP.geometry.parameters.height/2*Math.sin(cylinderUP.rotation.x);
-              //
-              //   var smallSphereRight = sphereGroup.smallSphereRight;
-              //   smallSphereRight.position.y = cylinderUPRight.position.y + cylinderUPRight.geometry.parameters.height/2*Math.cos(cylinderUPRight.rotation.x);
-              //   smallSphereRight.position.z = cylinderUPRight.position.z + cylinderUPRight.geometry.parameters.height/2*Math.sin(cylinderUPRight.rotation.x);
-              //
-              //   var cylinderDown = sphereGroup.cylinderDown;
-              //   //cylinderDown.rotation.x = -(Math.sin(count/100) * 45 +45) * Math.PI / 180  + cylinderUP.rotation.x - Math.PI/2;
-              // //  angle1 = (Math.sin(cyc + offset) * 45 + 45) * Math.PI / 180;  //-Math.PI / 2
-              //   cylinderDown.rotation.x =  cylinderUP.rotation.x + (Math.sin(count/100 + -Math.PI / 2) * 45 + 45) * Math.PI / 180;
-              //   //cylinderDown.rotation.x =  cylinderUP.rotation.x + (Math.PI/4 * Math.sin(count/100) + Math.PI/4);  //OK
-              //   cylinderDown.position.y = smallSphere.position.y + cylinderDown.geometry.parameters.height/2*Math.cos(cylinderDown.rotation.x);
-              //   cylinderDown.position.z = smallSphere.position.z + cylinderDown.geometry.parameters.height/2*Math.sin(cylinderDown.rotation.x);
-              //
-              //   var cylinderDownRight = sphereGroup.cylinderDownRight;
-              //   cylinderDownRight.rotation.x = cylinderUPRight.rotation.x + (Math.sin(count/100 + -Math.PI / 2) * 45 + 45) * Math.PI / 180;
-              //   cylinderDownRight.position.y = smallSphereRight.position.y + cylinderDownRight.geometry.parameters.height/2*Math.cos(cylinderDownRight.rotation.x);
-              //   cylinderDownRight.position.z = smallSphereRight.position.z + cylinderDownRight.geometry.parameters.height/2*Math.sin(cylinderDownRight.rotation.x);
-
-
-                // for ( var i = 0; i < children.length; i ++ ) {
-                //
-                //     //children[ i ].style.display = i === value ? 'block' : 'none';
-                //     if(count%70 == 10){
-                //         children[ i ].material.color = materialcolors[0 ].color;
-                //     } else if(count%70 == 20){
-                //         children[ i ].material.color = materialcolors[1 ].color;
-                //     } else if(count%70 == 30){
-                //         children[ i ].material.color = materialcolors[2 ].color;
-                //     } else if(count%70 == 40){
-                //         children[ i ].material.color = materialcolors[3 ].color;
-                //     } else if(count%70 == 50){
-                //         children[ i ].material.color = materialcolors[4 ].color;
-                //     } else if(count%70 == 60){
-                //         children[ i ].material.color = materialcolors[5 ].color;
-                //     } else if(count%70 == 0){
-                //         children[ i ].material.color = materialcolors[6 ].color;
-                //     }
-                //
-                //     //children[ i ].scale.x -=0.1;
-                //
-                // }
-
-                //ball.material.color = ballpre.material.color;
-
-
-                // smallSphere.position.set(
-				// 	Math.cos( timer * 0.1 ) * 30,
-				// 	Math.abs( Math.cos( timer * 0.2 ) ) * 20 + 5,
-				// 	Math.sin( timer * 0.1 ) * 30
-				// );
-				// smallSphere.rotation.y = ( Math.PI / 2 ) - timer * 0.1;
-				// smallSphere.rotation.z = timer * 0.8;
+                checkFloor(robot01);
 
 				renderer.render( scene, camera );
 
@@ -366,59 +286,43 @@
 
 			function walk(leg,offset){
 
-               // leg.rotation.y = Math.PI/2;
-               //  leg.position.x = 5;
-               //  leg.position.y = 15;
-           //     var offset = Math.PI/2;
-
                 // var children = sphereGroup.children;
 
                 var cylinderUP = leg.cylinderUP;
                 var topSphere = leg.topSphere;
-                //cylinderUP.rotation.x = -(Math.sin(count/100) * 45 + 90) * Math.PI / 180 - Math.PI/2;
-                //cylinderUP.rotation.x = (Math.sin(count/100) * 45) * Math.PI / 180 + Math.PI;  //OK
-                //cylinderUP.rotation.x = Math.PI/4 * Math.sin(count/100) + Math.PI;  //OK    //(Math.sin(cyc) * 45 + 90) * Math.PI / 180
-                // if(offset > 0){
-                //     cylinderUP.rotation.x = (Math.cos(count/100) * 45 + 90) * Math.PI / 180  + Math.PI/2;  //OK    //(Math.sin(cyc) * 45 + 90) * Math.PI / 180
-                // } else {
-                //     cylinderUP.rotation.x = (Math.sin(count/100) * 45 + 90) * Math.PI / 180  + Math.PI/2;  //OK    //(Math.sin(cyc) * 45 + 90) * Math.PI / 180
+
+                var footSpherepre = leg.footSphere;
+                // if(outflg == 1){
+                //     console.log("leg.footSphere: ",  leg.footSphere);
+                //     console.log("leg.footSphere.position: ",  leg.footSphere.position);
+                //     console.log("leg.footSphere.renderOrder: ",  leg.footSphere.renderOrder);
+                //     console.log("leg.footSphere.position.x: ",  leg.footSphere.position.x);
+                //     console.log("leg.footSphere.position.y: ",  leg.footSphere.position);
+                //     console.log("leg.footSphere.position.z: ",  leg.footSphere.position.z);
+                //     outflg = 0;
                 // }
-                //cylinderUP.rotation.x = (Math.sin(count/100+offset) * 45 + 90) * Math.PI / 180  + Math.PI/2;
+                var footSphereprevy = leg.footSphere.position.y;
+                var footSphereprevz = leg.footSphere.position.z;
+                if(isNaN(leg.footSphere.position.x) || isNaN(leg.footSphere.position.y) || isNaN(leg.footSphere.position.z)){
+                    footSphereprevy = 0;
+                    footSphereprevz = 0;
+				}
+
+
                 cylinderUP.rotation.x = (Math.sin(count/100+offset) * 45 + 90) * Math.PI / 180  + Math.PI/2;
-                //cylinderDown.rotation.x =  cylinderUP.rotation.x + (Math.PI/4 * Math.sin(count/100) + Math.PI/4);
+
                 cylinderUP.position.x = topSphere.position.x;
                 cylinderUP.position.y = topSphere.position.y + cylinderUP.geometry.parameters.height/2*Math.cos(cylinderUP.rotation.x);
                 cylinderUP.position.z = topSphere.position.z + cylinderUP.geometry.parameters.height/2*Math.sin(cylinderUP.rotation.x);
-
-
-                // var cylinderUPRight = sphereGroup.cylinderUPRight;
-                // var topSphereRight = sphereGroup.topSphereRight;
-                // topSphereRight.position.z = topSphere.position.z + 0;
-                // //cylinderUPRight.rotation.x = -(Math.sin(count/100 + offset) * 45 + 90) * Math.PI / 180 - Math.PI/2;
-                // cylinderUPRight.rotation.x =(Math.sin(-count/100) * 45 + 90) * Math.PI / 180  + Math.PI/2;
-                // //cylinderUPRight.rotation.x =(Math.sin(count/100) * 45 + 90) * Math.PI / 180  + Math.PI/2;
-                // // cylinderUPRight.rotation.x = cylinderUP.rotation.x + Math.PI;
-                // cylinderUPRight.position.y = topSphereRight.position.y + cylinderUPRight.geometry.parameters.height/2*Math.cos(cylinderUPRight.rotation.x);
-                // cylinderUPRight.position.z = topSphereRight.position.z + cylinderUPRight.geometry.parameters.height/2*Math.sin(cylinderUPRight.rotation.x);
-
-
-
 
                 var smallSphere = leg.smallSphere;
                 smallSphere.position.x = cylinderUP.position.x;
                 smallSphere.position.y = cylinderUP.position.y + cylinderUP.geometry.parameters.height/2*Math.cos(cylinderUP.rotation.x);
                 smallSphere.position.z = cylinderUP.position.z + cylinderUP.geometry.parameters.height/2*Math.sin(cylinderUP.rotation.x);
 
-                // var smallSphereRight = sphereGroup.smallSphereRight;
-                // smallSphereRight.position.y = cylinderUPRight.position.y + cylinderUPRight.geometry.parameters.height/2*Math.cos(cylinderUPRight.rotation.x);
-                // smallSphereRight.position.z = cylinderUPRight.position.z + cylinderUPRight.geometry.parameters.height/2*Math.sin(cylinderUPRight.rotation.x);
-
                 var cylinderDown = leg.cylinderDown;
-                //cylinderDown.rotation.x = -(Math.sin(count/100) * 45 +45) * Math.PI / 180  + cylinderUP.rotation.x - Math.PI/2;
-                //  angle1 = (Math.sin(cyc + offset) * 45 + 45) * Math.PI / 180;  //-Math.PI / 2
-                cylinderDown.rotation.x =  cylinderUP.rotation.x + (Math.sin(count/100 + -Math.PI / 2) * 45 + 45) * Math.PI / 180;
-                //cylinderDown.rotation.x =  cylinderUP.rotation.x + (Math.PI/4 * Math.sin(count/100) + Math.PI/4);  //OK
-                cylinderDown.position.x = smallSphere.position.x;
+				cylinderDown.rotation.x =  cylinderUP.rotation.x + (Math.sin(count/100 + -Math.PI / 2) * 45 + 45) * Math.PI / 180;
+				cylinderDown.position.x = smallSphere.position.x;
                 cylinderDown.position.y = smallSphere.position.y + cylinderDown.geometry.parameters.height/2*Math.cos(cylinderDown.rotation.x);
                 cylinderDown.position.z = smallSphere.position.z + cylinderDown.geometry.parameters.height/2*Math.sin(cylinderDown.rotation.x);
 
@@ -427,36 +331,74 @@
                 footSphere.position.y = cylinderDown.position.y + cylinderDown.geometry.parameters.height/2*Math.cos(cylinderDown.rotation.x);
                 footSphere.position.z = cylinderDown.position.z + cylinderDown.geometry.parameters.height/2*Math.sin(cylinderDown.rotation.x);
 
-
-                // var cylinderDownRight = sphereGroup.cylinderDownRight;
-                // cylinderDownRight.rotation.x = cylinderUPRight.rotation.x + (Math.sin(count/100 + -Math.PI / 2) * 45 + 45) * Math.PI / 180;
-                // cylinderDownRight.position.y = smallSphereRight.position.y + cylinderDownRight.geometry.parameters.height/2*Math.cos(cylinderDownRight.rotation.x);
-                // cylinderDownRight.position.z = smallSphereRight.position.z + cylinderDownRight.geometry.parameters.height/2*Math.sin(cylinderDownRight.rotation.x);
+                leg.vy = footSphere.position.y - footSphereprevy;
+                leg.vz = footSphere.position.z - footSphereprevz;
+                // if(outflg == 1){
+                //     console.log("leg.footSphere: ",  leg.footSphere);
+                //     console.log("leg.footSphere.position: ",  leg.footSphere.position);
+                //     console.log("leg.footSphere.position.x: ",  leg.footSphere.position.x);
+                //     console.log("leg.footSphere.position.y: ",  leg.footSphere.position.y);
+                //     console.log("leg.footSphere.position.z: ",  leg.footSphere.position.z);
+                //     outflg = 0;
+                // }
 
 			}
 
-            function setVelocity (rabot) {
-				rabot.vy += 0.1;
-                rabot.leftLeg.topScope.z += rabot.vz;
-                rabot.leftLeg.topScope.y += rabot.vy;
-                rabot.rightLeg.topScope.z += rabot.vz;
-                rabot.rightLeg.topScope.y += rabot.vy;
+			//var outflg = 1;
+
+            function setVelocity(robot) {
+                if(outflg == 1 && robot.vz > 0){
+                    console.log("robot.vz: ",  robot.vz);
+                    //outflg = 0;
+				}
+                robot.vy += 0.1;
+                robot.leftLeg.topSphere.position.z += robot.vz;
+               // robot.leftLeg.topSphere.position.y += robot.vy;
+                robot.rightLeg.topSphere.position.z += robot.vz;
+              //  robot.rightLeg.topSphere.position.y += robot.vy;
             }
-            function checkFloor (rabot) {
+            function checkFloor(robot) {
 
 
 
-                var yMax = rabot.leftLeg.smallSphere.position.y + rabot.leftLeg.smallSphere.parameters.radius;
-                if (yMax <  floorBottom.position.y) {
-                    var dy = yMax - canvas.height;
-                    segment0.y -= dy;
-                    segment1.y -= dy;
-                    segment2.y -= dy;
-                    segment3.y -= dy;
-                    vx -= seg.vx;
-                    vy -= seg.vy;
+                var yMinLeft = robot.leftLeg.footSphere.position.y + robot.leftLeg.footSphere.geometry.parameters.radius;
+                var yMinRight = robot.rightLeg.footSphere.position.y + robot.rightLeg.footSphere.geometry.parameters.radius;
+                if (yMinLeft <  floorBottom.position.y) {
+
+                    var dy = yMinLeft - floorBottom.position.y;
+                    var children = robot.leftLeg.children;
+                    for ( var i = 0; i < children.length; i ++ ) {
+                        var objchild = children[i];
+                        objchild.position.y -= dy;
+                    }
+                    robot.vy -= robot.leftLeg.vy;
+                    robot.vz -= robot.leftLeg.vz;
                 }
-            }
+                if (yMinRight <  floorBottom.position.y) {
+
+                    var dy = yMinRight - floorBottom.position.y;
+                    var children = robot.rightLeg.children;
+                    for ( var i = 0; i < children.length; i ++ ) {
+                        var objchild = children[i];
+                        objchild.position.y -= dy;
+                    }
+
+                    robot.vy -= robot.rightLeg.vy;
+                    robot.vz += robot.rightLeg.vz;
+                }
+                // if (yMinRight <  floorBottom.position.y) {
+                //     var dy = yMinRight - floorBottom.position.y;
+                //     var children = robot.rightLeg.children;
+                //     for ( var i = 0; i < children.length; i ++ ) {
+                //         var objchild = children[i];
+                //         objchild.position.y -= dy;
+                //     }
+                //
+                //     robot.vy -= robot.rightLeg.vy;
+                //     robot.vz -= robot.rightLeg.vz;
+                //
+                // }
+			}
 
             //function checkfloor
 
