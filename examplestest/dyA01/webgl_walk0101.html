@@ -95,7 +95,7 @@
                 materialcolors.push( new THREE.MeshPhongMaterial( { color: 0x7A67EE, emissive: 0x444444 } ));
 
 
-				var planeGeo = new THREE.PlaneBufferGeometry( 500, 500);
+				var planeGeo = new THREE.PlaneBufferGeometry( 2000, 2000);
 
 				// reflectors/mirrors
 
@@ -225,7 +225,7 @@
                 sphereGroupLeg.add( topSphere );
                 sphereGroupLeg.topSphere = topSphere;
 
-                var geometry = new THREE.CylinderBufferGeometry( 2, 2, 30, 200 );
+                var geometry = new THREE.CylinderBufferGeometry( 2, 2, 20, 200 );
                 var material = new THREE.MeshPhongMaterial( { color: 0x551A8B } );
 
                 var cylinderUP = new THREE.Mesh( geometry, material );
@@ -240,7 +240,7 @@
                 sphereGroupLeg.add( smallSphere );
                 sphereGroupLeg.smallSphere = smallSphere;
 
-                var geometry = new THREE.CylinderBufferGeometry( 2, 2, 30, 200 );
+                var geometry = new THREE.CylinderBufferGeometry( 2, 2, 20, 200 );
                 var material = new THREE.MeshPhongMaterial( { color: 0x551A8B } );
 
                 var cylinderDown = new THREE.Mesh( geometry, material );
@@ -278,7 +278,13 @@
                 setVelocity(robot01);
                 walk(robot01.leftLeg,0);
                 walk(robot01.rightLeg,Math.PI);
-                checkFloor(robot01);
+               // walk(robot01.rightLeg,Math.PI);
+                //checkFloor(robot01);
+                checkFloor(robot01.leftLeg);
+                checkFloor(robot01.rightLeg);
+
+                camera.position.z = robot01.leftLeg.topSphere.position.z + 100;
+                camera.lookAt( robot01.leftLeg.topSphere.position );
 
 				renderer.render( scene, camera );
 
@@ -303,6 +309,7 @@
                 // }
                 var footSphereprevy = leg.footSphere.position.y;
                 var footSphereprevz = leg.footSphere.position.z;
+				//var positionpre = leg.footSphere.position;
                 if(isNaN(leg.footSphere.position.x) || isNaN(leg.footSphere.position.y) || isNaN(leg.footSphere.position.z)){
                     footSphereprevy = 0;
                     footSphereprevz = 0;
@@ -333,9 +340,12 @@
 
                 leg.vy = footSphere.position.y - footSphereprevy;
                 leg.vz = footSphere.position.z - footSphereprevz;
+                // if(leg.vz > 0){
+                 //    leg.vz = -1 * leg.vz;
+				// }
 
                // if(leg.vz < 10 && offset > 0){
-                    console.log("leg.vz: ",  leg.vz);
+                  //  console.log("leg.vz: ",  leg.vz);
 
                     //console.log("footSphereprevz: ",  footSphereprevz);
                     //console.log("footSphere.position.z : ",  footSphere.position.z );
@@ -354,61 +364,113 @@
 
 			//var outflg = 1;
 
+            //robot.vy = 0.005;
             function setVelocity(robot) {
                // if(outflg == 1 && robot.vz > 0){
                  //   console.log("robot.vz: ",  robot.vz);
                     //outflg = 0;
 				//}
-                robot.vy -= 0.005;
+				if (robot.vy > 0){
+                    robot.vy = robot.vy*1/10;
+				} else {
+                    robot.vy -= 0.005;
+				}
+				if (robot.vz < 0){
+                    robot.vz = -1 * robot.vz;
+				}
+
                // robot.vy = 0.1;
                 robot.leftLeg.topSphere.position.z += robot.vz;
                 robot.leftLeg.topSphere.position.y += robot.vy;
                 robot.rightLeg.topSphere.position.z += robot.vz;
                 robot.rightLeg.topSphere.position.y += robot.vy;
             }
-            function checkFloor(robot) {
-                var yMinLeft = robot.leftLeg.footSphere.position.y - robot.leftLeg.footSphere.geometry.parameters.radius;
-                var yMinRight = robot.rightLeg.footSphere.position.y - robot.rightLeg.footSphere.geometry.parameters.radius;
-                console.log("yMinLeft: ",  yMinLeft);
-                console.log("floorBottom.position.y: ",  floorBottom.position.y);
+            function checkFloor(leg) {
+                var yMin = leg.footSphere.position.y - leg.footSphere.geometry.parameters.radius;
+                //var yMinRight = robot.rightLeg.footSphere.position.y - robot.rightLeg.footSphere.geometry.parameters.radius;
+                //  console.log("yMinLeft: ",  yMinLeft);
+                //   console.log("floorBottom.position.y: ",  floorBottom.position.y);
 
 
-                if (yMinLeft <  floorBottom.position.y) {
+                if (yMin <  floorBottom.position.y) {
+                    // robot.vy += 0.005;
 
-                    var dy = yMinLeft - floorBottom.position.y;
-                    var children = robot.leftLeg.children;
+                    var dy = yMin - floorBottom.position.y;
+                    var children = robot01.leftLeg.children;
                     for ( var i = 0; i < children.length; i ++ ) {
                         var objchild = children[i];
                         objchild.position.y -= dy;
                     }
-                    robot.vy -= robot.leftLeg.vy;
-                    robot.vz -= robot.leftLeg.vz;
-                }
-                if (yMinRight <  floorBottom.position.y) {
-
-                    var dy = yMinRight - floorBottom.position.y;
-                    var children = robot.rightLeg.children;
+                    var children = robot01.rightLeg.children;
                     for ( var i = 0; i < children.length; i ++ ) {
                         var objchild = children[i];
                         objchild.position.y -= dy;
                     }
-
-                    robot.vy -= robot.rightLeg.vy;
-                    robot.vz -= robot.rightLeg.vz;
+                    robot01.vy -= leg.vy*1	;
+                    robot01.vz -= leg.vz;
                 }
-                // if (yMinRight <  floorBottom.position.y) {
-                //     var dy = yMinRight - floorBottom.position.y;
-                //     var children = robot.rightLeg.children;
-                //     for ( var i = 0; i < children.length; i ++ ) {
-                //         var objchild = children[i];
-                //         objchild.position.y -= dy;
-                //     }
-                //
-                //     robot.vy -= robot.rightLeg.vy;
-                //     robot.vz -= robot.rightLeg.vz;
-                //
-                // }
-			}
+              }
+
+            // function checkFloor(robot) {
+             //    var yMinLeft = robot.leftLeg.footSphere.position.y - robot.leftLeg.footSphere.geometry.parameters.radius;
+             //    var yMinRight = robot.rightLeg.footSphere.position.y - robot.rightLeg.footSphere.geometry.parameters.radius;
+             //  //  console.log("yMinLeft: ",  yMinLeft);
+             // //   console.log("floorBottom.position.y: ",  floorBottom.position.y);
+            //
+            //
+             //    if (yMinLeft <=  floorBottom.position.y) {
+             //       // robot.vy += 0.005;
+            //
+             //        var dy = yMinLeft - floorBottom.position.y;
+             //        var children = robot.leftLeg.children;
+             //        for ( var i = 0; i < children.length; i ++ ) {
+             //            var objchild = children[i];
+             //            objchild.position.y -= dy;
+             //        }
+             //        var children = robot.rightLeg.children;
+             //        for ( var i = 0; i < children.length; i ++ ) {
+             //            var objchild = children[i];
+             //            objchild.position.y -= dy;
+             //        }
+            //
+             //      //  robot.leftLeg.topSphere.position.y -= dy;
+            //
+            //
+             //       // robot.vy = 0;
+             //        robot.vy -= robot.leftLeg.vy;
+             //        robot.vz -= robot.leftLeg.vz;
+             //    }
+             //    if (yMinRight <=  	floorBottom.position.y) {
+             //       // robot.vy += 0.005;
+            //
+             //        var dy = yMinRight - floorBottom.position.y;
+             //        var children = robot.leftLeg.children;
+             //        //console.log(" before robot.rightLeg.topSphere.position.y: ",  robot.rightLeg.topSphere.position.y);
+             //       // console.log("dy: ",  dy);
+            //
+             //        for ( var i = 0; i < children.length; i ++ ) {
+             //            var objchild = children[i];
+             //            objchild.position.y -= dy;
+             //        }
+             //        var children = robot.rightLeg.children;
+             //        for ( var i = 0; i < children.length; i ++ ) {
+             //            var objchild = children[i];
+             //            objchild.position.y -= dy;
+             //        }
+             //      //  robot.rightLeg.topSphere.position.y -= dy;
+            //
+             //        //robot.vy = 0;
+             //        robot.vy -= robot.rightLeg.vy;
+             //        robot.vz -= robot.rightLeg.vz;
+            //
+             //        console.log("after robot.rightLeg.topSphere.position.y: ",  robot.rightLeg.topSphere.position.y);
+            //
+             //        console.log("robot.rightLeg.vy: ",  robot.rightLeg.vy);
+            //
+             //        console.log("robot.vy: ",  robot.vy);
+            //
+             //    }
+			// }
 
             //function checkfloor
 
