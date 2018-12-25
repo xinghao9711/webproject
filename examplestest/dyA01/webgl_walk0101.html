@@ -134,16 +134,16 @@
                 robot01.vy = 0;
 
 
-                robot01.leftLeg = initrobotLeg(0,40,0);
-                robot01.rightLeg = initrobotLeg(5,40,0);
-                robot01.walkspeed = 1/2;
+                robot01.leftLeg = initrobotLeg(0,80,0);
+                robot01.rightLeg = initrobotLeg(5,80,0);
+                robot01.walkspeed = 1;
                // console.log("sphereGroup.leftLeg: ", sphereGroup.leftLeg);
                 scene.add( robot01.leftLeg );
                 scene.add( robot01.rightLeg );
 
 				floorBottom = new THREE.Mesh( planeGeo, new THREE.MeshPhongMaterial( { color: 0x6C7B8B } ) );
                 floorBottom.rotateX( - Math.PI / 2 );
-                floorBottom.position.y = 10;
+                floorBottom.position.y = 0;
                 scene.add( floorBottom );
 
                //
@@ -333,6 +333,14 @@
 
                 leg.vy = footSphere.position.y - footSphereprevy;
                 leg.vz = footSphere.position.z - footSphereprevz;
+
+               // if(leg.vz < 10 && offset > 0){
+                    console.log("leg.vz: ",  leg.vz);
+
+                    //console.log("footSphereprevz: ",  footSphereprevz);
+                    //console.log("footSphere.position.z : ",  footSphere.position.z );
+
+               // }
                 // if(outflg == 1){
                 //     console.log("leg.footSphere: ",  leg.footSphere);
                 //     console.log("leg.footSphere.position: ",  leg.footSphere.position);
@@ -347,22 +355,24 @@
 			//var outflg = 1;
 
             function setVelocity(robot) {
-                if(outflg == 1 && robot.vz > 0){
-                    console.log("robot.vz: ",  robot.vz);
+               // if(outflg == 1 && robot.vz > 0){
+                 //   console.log("robot.vz: ",  robot.vz);
                     //outflg = 0;
-				}
-                robot.vy += 0.1;
+				//}
+                robot.vy -= 0.005;
+               // robot.vy = 0.1;
                 robot.leftLeg.topSphere.position.z += robot.vz;
-               // robot.leftLeg.topSphere.position.y += robot.vy;
+                robot.leftLeg.topSphere.position.y += robot.vy;
                 robot.rightLeg.topSphere.position.z += robot.vz;
-              //  robot.rightLeg.topSphere.position.y += robot.vy;
+                robot.rightLeg.topSphere.position.y += robot.vy;
             }
             function checkFloor(robot) {
+                var yMinLeft = robot.leftLeg.footSphere.position.y - robot.leftLeg.footSphere.geometry.parameters.radius;
+                var yMinRight = robot.rightLeg.footSphere.position.y - robot.rightLeg.footSphere.geometry.parameters.radius;
+                console.log("yMinLeft: ",  yMinLeft);
+                console.log("floorBottom.position.y: ",  floorBottom.position.y);
 
 
-
-                var yMinLeft = robot.leftLeg.footSphere.position.y + robot.leftLeg.footSphere.geometry.parameters.radius;
-                var yMinRight = robot.rightLeg.footSphere.position.y + robot.rightLeg.footSphere.geometry.parameters.radius;
                 if (yMinLeft <  floorBottom.position.y) {
 
                     var dy = yMinLeft - floorBottom.position.y;
@@ -384,7 +394,7 @@
                     }
 
                     robot.vy -= robot.rightLeg.vy;
-                    robot.vz += robot.rightLeg.vz;
+                    robot.vz -= robot.rightLeg.vz;
                 }
                 // if (yMinRight <  floorBottom.position.y) {
                 //     var dy = yMinRight - floorBottom.position.y;
