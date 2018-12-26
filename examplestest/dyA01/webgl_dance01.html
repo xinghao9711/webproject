@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - mirror</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				color: #888888;
+				font-family:Monospace;
+				font-size:13px;
+
+				background-color: #000;
+				margin: 0px;
+				overflow: hidden;
+			}
+
+			#info {
+				position: absolute;
+				top: 0px;
+				width: 200px;
+				left: calc(50% - 100px);
+				text-align: center;
+			}
+
+			a {
+				color: #00f;
+			}
+		</style>
+	</head>
+	<body>
+
+		<div id="container"></div>
+
+
+		<script src="../js/three.js"></script>
+		<script src="../js/objects/Reflector.js"></script>
+		<script src="../js/controls/OrbitControls.js"></script>
+
+		<script>
+
+			// scene size
+			var WIDTH = window.innerWidth;
+			var HEIGHT = window.innerHeight;
+
+			// camera
+			var VIEW_ANGLE = 45;
+			var ASPECT = WIDTH / HEIGHT;
+			var NEAR = 1;
+			var FAR = 500;
+
+			var camera, scene, renderer;
+
+			var cameraControls;
+
+			var sphereGroup, smallSphere;
+			var materialcolors = [];
+            var robot01;
+            var floorBottom;
+            var targetSphere;
+            var rotationMatrix = new THREE.Matrix4();
+            var targetRotation = new THREE.Quaternion();
+            var clock = new THREE.Clock();
+            var speed = 2;
+
+			init();
+			animate();
+
+			function init() {
+
+				var container = document.getElementById( 'container' );
+
+				// renderer
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( WIDTH, HEIGHT );
+				container.appendChild( renderer.domElement );
+
+				// scene
+				scene = new THREE.Scene();
+
+				// camera
+				camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR );
+				camera.position.set( 0, 75, 160 );
+                camera.lookAt(0,50,0);
+
+				cameraControls = new THREE.OrbitControls( camera, renderer.domElement );
+				cameraControls.target.set( 0, 40, 0 );
+				cameraControls.maxDistance = 400;
+				cameraControls.minDistance = 10;
+				cameraControls.update();
+
+                materialcolors.push( new THREE.MeshPhongMaterial( { color: 0xff0000, emissive: 0x444444 } ));
+                materialcolors.push( new THREE.MeshPhongMaterial( { color: 0xff9900, emissive: 0x444444 } ));
+                materialcolors.push( new THREE.MeshPhongMaterial( { color: 0xffff00, emissive: 0x444444 } ));
+                materialcolors.push( new THREE.MeshPhongMaterial( { color: 0x66ff00, emissive: 0x444444 } ));
+                materialcolors.push( new THREE.MeshPhongMaterial( { color: 0x3333ff, emissive: 0x444444 } ));
+                materialcolors.push( new THREE.MeshPhongMaterial( { color: 0x003333, emissive: 0x444444 } ));
+                materialcolors.push( new THREE.MeshPhongMaterial( { color: 0x7A67EE, emissive: 0x444444 } ));
+
+
+				var planeGeo = new THREE.PlaneBufferGeometry( 2000, 2000);
+
+				// reflectors/mirrors
+
+				// var geometry = new THREE.CircleBufferGeometry( 40, 64 );
+				// var groundMirror = new THREE.Reflector( geometry, {
+				// 	clipBias: 0.003,
+				// 	textureWidth: WIDTH * window.devicePixelRatio,
+				// 	textureHeight: HEIGHT * window.devicePixelRatio,
+				// 	color: 0x777777,
+				// 	recursion: 1
+				// } );
+				// //groundMirror.position.y = 0.5;
+                // groundMirror.position.y = 0.5;
+				// //groundMirror.rotateX( - Math.PI / 2 );
+                // groundMirror.rotateX( - Math.PI / 2 );
+				// scene.add( groundMirror );
+                //
+				// var geometry = new THREE.PlaneBufferGeometry( 100, 100 );
+				// var verticalMirror = new THREE.Reflector( geometry, {
+				// 	clipBias: 0.003,
+				// 	textureWidth: WIDTH * window.devicePixelRatio,
+				// 	textureHeight: HEIGHT * window.devicePixelRatio,
+				// 	color: 0x889999,
+				// 	recursion: 1
+				// } );
+				// verticalMirror.position.y = 50;
+				// verticalMirror.position.z = - 50;
+				// //scene.add( verticalMirror );
+
+
+				robot01  = new THREE.Object3D();
+				scene.add( robot01 );
+
+				//行走速度
+                robot01.vz = 0;
+                robot01.vy = 0;
+
+
+                robot01.leftArm = initrobotarm(0,40,0);
+                robot01.rightArm = initrobotarm(5,40,0);
+                robot01.walkspeed = 1;  //robot01.leftArm.topSphere.position.z
+                // console.log("robot01.leftArm: ", robot01.leftArm);
+                // console.log("robot01.leftArm.topSphere: ", robot01.leftArm.topSphere);
+                // console.log("robot01.leftArm.topSphere.position: ", robot01.leftArm.topSphere.position);
+                // console.log("robot01.leftArm.topSphere.position.z: ", robot01.leftArm.topSphere.position.z);
+                scene.add( robot01.leftArm );
+                scene.add( robot01.rightArm );
+
+				floorBottom = new THREE.Mesh( planeGeo, new THREE.MeshPhongMaterial( { color: 0x6C7B8B } ) );
+                floorBottom.rotateX( - Math.PI / 2 );
+                floorBottom.position.y = 0;
+                scene.add( floorBottom );
+
+                var geometry = new THREE.SphereBufferGeometry( 2, 250, 250 );
+                var material = new THREE.MeshPhongMaterial( { color: 0x551A8B, emissive: 0x333333, flatShading: true } );
+				targetSphere = new THREE.Mesh( geometry, material );
+                targetSphere.position.x = 15;
+                targetSphere.position.y = 4;
+                targetSphere.position.z = 10;
+                scene.add( targetSphere );
+
+                //
+                //
+				// var planeFront = new THREE.Mesh( planeGeo, new THREE.MeshPhongMaterial( { color: 0x7f7fff } ) );
+				// planeFront.position.z = 50;
+				// planeFront.position.y = 50;
+				// planeFront.rotateY( Math.PI );
+				// scene.add( planeFront );
+                //
+				// var planeRight = new THREE.Mesh( planeGeo, new THREE.MeshPhongMaterial( { color: 0x00ff00 } ) );
+				// planeRight.position.x = 50;
+				// planeRight.position.y = 50;
+				// planeRight.rotateY( - Math.PI / 2 );
+				// scene.add( planeRight );
+                //
+				// var planeLeft = new THREE.Mesh( planeGeo, new THREE.MeshPhongMaterial( { color: 0xff0000 } ) );
+				// planeLeft.position.x = - 50;
+				// planeLeft.position.y = 50;
+				// planeLeft.rotateY( Math.PI / 2 );
+				// scene.add( planeLeft );
+
+				// lights   new THREE.AmbientLight( 0xcccccc, 0.4 )
+
+                // lights
+
+                var ambientLight = new THREE.AmbientLight( 0xcccccc, 0.4 );
+                scene.add( ambientLight );
+
+                var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.7 );
+                directionalLight.position.set( 0, 5, 5 );
+                scene.add( directionalLight );
+
+                var d = 5;
+                directionalLight.castShadow = true;
+                directionalLight.shadow.camera.left = - d;
+                directionalLight.shadow.camera.right = d;
+                directionalLight.shadow.camera.top = d;
+                directionalLight.shadow.camera.bottom = - d;
+
+                directionalLight.shadow.camera.near = 1;
+                directionalLight.shadow.camera.far = 20;
+
+                directionalLight.shadow.mapSize.x = 1024;
+                directionalLight.shadow.mapSize.y = 1024;
+
+				// var mainLight = new THREE.AmbientLight( 0xffffff, 5 );
+                // //var mainLight = new THREE.PointLight( 0xffff00, 20, 250 );
+				// mainLight.position.y = 80;
+				// scene.add( mainLight );
+
+			// 	var greenLight = new THREE.PointLight( 0x00ff00, 20, 100 );
+			// 	greenLight.position.set( 0, -20, 0 );
+			// 	scene.add( greenLight );
+             //    //
+			// 	var redLight = new THREE.PointLight( 0xff0000, 50, 1000 );
+			// 	redLight.position.set( - 20, 0, 0 );
+			// //	scene.add( redLight );
+            //
+				var blueLight = new THREE.PointLight( 0x7f7fff, 4, 1000 );
+				blueLight.position.set( 20, 20, 0 );
+				scene.add( blueLight );
+
+
+                //generateTarget();
+
+			}
+
+			function initrobotarm(x,y,z){
+
+			 //   console.log("init leg, z: ",z);
+
+                var arm = new THREE.Object3D();
+
+                var geometry = new THREE.SphereBufferGeometry( 2, 250, 250 );
+                var material = new THREE.MeshPhongMaterial( { color: 0x551A8B, emissive: 0x333333, flatShading: true } );
+                var topSphere = new THREE.Mesh( geometry, material );
+                topSphere.position.x = x;
+                topSphere.position.y = y;
+                topSphere.position.z = z;
+
+                arm.add( topSphere );
+                arm.topSphere = topSphere;
+
+                var  upperArm = initseg(x,y,z);
+                arm.add( upperArm );
+                arm.upperArm = upperArm;
+
+                var x1 = upperArm.smallSphere.position.x;
+                var y1 = upperArm.smallSphere.position.y;
+                var z1 = upperArm.smallSphere.position.z;
+                var forearm = initseg(x1,y1,z1);
+                arm.add( forearm );
+                arm.forearm = forearm;
+
+                //
+                // var geometry = new THREE.CylinderBufferGeometry( 2, 2, 20, 200 );
+                // var material = new THREE.MeshPhongMaterial( { color: 0x551A8B } );
+                //
+                // var cylinderUP = new THREE.Mesh( geometry, material );
+                // cylinderUP.castShadow = true;
+                // cylinderUP.receiveShadow = true;
+                // sphereGroupLeg.add( cylinderUP );
+                // sphereGroupLeg.cylinderUP = cylinderUP;
+                //
+                // var geometry = new THREE.SphereBufferGeometry( 2, 250, 250 );
+                // var material = new THREE.MeshPhongMaterial( { color: 0x551A8B, emissive: 0x333333, flatShading: true } );
+                // var smallSphere = new THREE.Mesh( geometry, material );
+                // sphereGroupLeg.add( smallSphere );
+                // sphereGroupLeg.smallSphere = smallSphere;
+                //
+                // var geometry = new THREE.CylinderBufferGeometry( 2, 2, 20, 200 );
+                // var material = new THREE.MeshPhongMaterial( { color: 0x551A8B } );
+                //
+                // var cylinderDown = new THREE.Mesh( geometry, material );
+                // cylinderDown.castShadow = true;
+                // cylinderDown.receiveShadow = true;
+                // sphereGroupLeg.add( cylinderDown );
+                // sphereGroupLeg.cylinderDown = cylinderDown;
+                //
+                // //foot
+                // var geometry = new THREE.SphereBufferGeometry( 2, 250, 250 );
+                // var material = new THREE.MeshPhongMaterial( { color: 0x551A8B, emissive: 0x333333, flatShading: true } );
+                // var footSphere = new THREE.Mesh( geometry, material );
+                // footSphere.position.x = 0;
+                // footSphere.position.y = 0;
+                // footSphere.position.z = 0;
+                // sphereGroupLeg.add( footSphere );
+                // sphereGroupLeg.footSphere = footSphere;
+                //
+                // walk(sphereGroupLeg,0);
+
+                return arm;
+
+			}
+
+			function initseg(x,y,z){
+			    var seg = new THREE.Object3D();;
+
+                var geometry = new THREE.CylinderBufferGeometry( 2, 2, 20, 200 );
+                var material = new THREE.MeshPhongMaterial( { color: 0x551A8B } );
+
+                var cylinder = new THREE.Mesh( geometry, material );
+                cylinder.castShadow = true;
+                cylinder.receiveShadow = true;
+                cylinder.position.x = x;
+                cylinder.position.y = y - cylinder.geometry.parameters.height/2;
+                cylinder.position.z = z;
+                seg.add( cylinder );
+                seg.cylinder = cylinder;
+
+                var geometry = new THREE.SphereBufferGeometry( 2, 250, 250 );
+                var material = new THREE.MeshPhongMaterial( { color: 0x551A8B, emissive: 0x333333, flatShading: true } );
+                var smallSphere = new THREE.Mesh( geometry, material );
+                smallSphere.position.x = x;
+                smallSphere.position.y = y - cylinder.geometry.parameters.height;
+                smallSphere.position.z = z;
+                seg.add( smallSphere );
+                seg.smallSphere = smallSphere;
+
+                return seg;
+
+			}
+
+			var count = 0;
+			//var upstep = 0.01;
+			var outflg = 1;
+			function animate() {
+				requestAnimationFrame( animate );
+				var timer = Date.now() * 0.01;
+
+                count += robot01.walkspeed;
+
+                wave(robot01.leftArm,0);
+                wave(robot01.rightArm,Math.PI);
+                // var delta = clock.getDelta();
+                //
+                // // var delta = 0.01;
+                // var mesh = robot01.leftArm.forearm.cylinder;
+                // if ( ! mesh.quaternion.equals( targetRotation ) ) {
+                //
+                //     var step = speed * delta;
+                //     mesh.quaternion.rotateTowards( targetRotation, step );
+
+               // }
+                camera.position.z = robot01.leftArm.topSphere.position.z + 100;
+                camera.lookAt( robot01.leftArm.topSphere.position );
+
+				renderer.render( scene, camera );
+			}
+
+            function wave(arm,offset){
+
+                // var children = sphereGroup.children;
+
+
+                var topSphere = arm.topSphere;
+                var cylinder = arm.upperArm.cylinder;
+                var smallSphere = arm.upperArm.smallSphere;
+
+                var cylinderfore = arm.forearm.cylinder;
+                var smallSpherefore = arm.forearm.smallSphere;
+
+                // var footSphereprevy = leg.footSphere.position.y;
+                // var footSphereprevz = leg.footSphere.position.z;
+                // //var positionpre = leg.footSphere.position;
+                // if(isNaN(leg.footSphere.position.x) || isNaN(leg.footSphere.position.y) || isNaN(leg.footSphere.position.z)){
+                //     footSphereprevy = 0;
+                //     footSphereprevz = 0;
+                // }
+
+
+                cylinder.rotation.x = (Math.sin(count/100+offset) * 45 + 90) * Math.PI / 180  + Math.PI/2;
+
+                cylinder.position.x = topSphere.position.x;
+                cylinder.position.y = topSphere.position.y + cylinder.geometry.parameters.height/2*Math.cos(cylinder.rotation.x);
+                cylinder.position.z = topSphere.position.z + cylinder.geometry.parameters.height/2*Math.sin(cylinder.rotation.x);
+
+              //  var smallSphere = leg.smallSphere;
+                smallSphere.position.x = cylinder.position.x;
+                smallSphere.position.y = cylinder.position.y + cylinder.geometry.parameters.height/2*Math.cos(cylinder.rotation.x);
+                smallSphere.position.z = cylinder.position.z + cylinder.geometry.parameters.height/2*Math.sin(cylinder.rotation.x);
+
+                //var cylinderfore = leg.cylinderDown;
+                cylinderfore.rotation.x =  cylinder.rotation.x ;
+                cylinderfore.position.x = smallSphere.position.x;
+                cylinderfore.position.y = smallSphere.position.y + cylinderfore.geometry.parameters.height/2*Math.cos(cylinderfore.rotation.x);
+                cylinderfore.position.z = smallSphere.position.z + cylinderfore.geometry.parameters.height/2*Math.sin(cylinderfore.rotation.x);
+
+                //var footSphere = leg.footSphere;
+                smallSpherefore.position.x = cylinderfore.position.x;
+                smallSpherefore.position.y = cylinderfore.position.y + cylinderfore.geometry.parameters.height/2*Math.cos(cylinderfore.rotation.x);
+                smallSpherefore.position.z = cylinderfore.position.z + cylinderfore.geometry.parameters.height/2*Math.sin(cylinderfore.rotation.x);
+
+
+
+            }
+
+            function left(){
+			    
+			}
+
+
+
+
+
+
+
+
+
+		</script>
+	</body>
+</html>
