@@ -146,8 +146,8 @@
                 robot01.head = inithead(10,45,0);  //neck顶点坐标
 
                 robot01.leftLeg = initrobotarm(2,0,0);
-                robot01.rightLeg = initrobotarm(20,0,0);
-                robot01.walkspeed = 1;
+                robot01.rightLeg = initrobotarm(18,0,0);
+               // robot01.walkspeed = 1;
 
                 scene.add( robot01.leftLeg );
                 scene.add( robot01.rightLeg );
@@ -235,6 +235,7 @@
 				blueLight.position.set( 20, 50, 0 );
 				scene.add( blueLight );
 
+                downToFloor(robot01);
 
                 //generateTarget();
 
@@ -267,42 +268,7 @@
                 arm.add( forearm );
                 arm.forearm = forearm;
 
-                //
-                // var geometry = new THREE.CylinderBufferGeometry( 2, 2, 20, 200 );
-                // var material = new THREE.MeshPhongMaterial( { color: 0x551A8B } );
-                //
-                // var cylinderUP = new THREE.Mesh( geometry, material );
-                // cylinderUP.castShadow = true;
-                // cylinderUP.receiveShadow = true;
-                // sphereGroupLeg.add( cylinderUP );
-                // sphereGroupLeg.cylinderUP = cylinderUP;
-                //
-                // var geometry = new THREE.SphereBufferGeometry( 2, 250, 250 );
-                // var material = new THREE.MeshPhongMaterial( { color: 0x551A8B, emissive: 0x333333, flatShading: true } );
-                // var smallSphere = new THREE.Mesh( geometry, material );
-                // sphereGroupLeg.add( smallSphere );
-                // sphereGroupLeg.smallSphere = smallSphere;
-                //
-                // var geometry = new THREE.CylinderBufferGeometry( 2, 2, 20, 200 );
-                // var material = new THREE.MeshPhongMaterial( { color: 0x551A8B } );
-                //
-                // var cylinderDown = new THREE.Mesh( geometry, material );
-                // cylinderDown.castShadow = true;
-                // cylinderDown.receiveShadow = true;
-                // sphereGroupLeg.add( cylinderDown );
-                // sphereGroupLeg.cylinderDown = cylinderDown;
-                //
-                // //foot
-                // var geometry = new THREE.SphereBufferGeometry( 2, 250, 250 );
-                // var material = new THREE.MeshPhongMaterial( { color: 0x551A8B, emissive: 0x333333, flatShading: true } );
-                // var footSphere = new THREE.Mesh( geometry, material );
-                // footSphere.position.x = 0;
-                // footSphere.position.y = 0;
-                // footSphere.position.z = 0;
-                // sphereGroupLeg.add( footSphere );
-                // sphereGroupLeg.footSphere = footSphere;
-                //
-                // walk(sphereGroupLeg,0);
+
 
                 return arm;
 
@@ -403,6 +369,11 @@
 
 			}
 
+			function downToFloor(robot){
+                var smallSphere = robot.rightLeg.forearm.smallSphere;
+                floorBottom.position.y = smallSphere.position.y - smallSphere.geometry.parameters.radius;
+            }
+
 
 			function initseg(x,y,z){
 			    var seg = new THREE.Object3D();;
@@ -439,29 +410,35 @@
 				requestAnimationFrame( animate );
 				var timer = Date.now() * 0.01;
 
-                count += robot01.walkspeed;
+                //count += robot01.walkspeed;
+                count += 4;
 
-               // wave01(robot01.leftArm,0);
-              //  wave01(robot01.rightArm,Math.PI);
-                // wave(robot01.leftArm,0);
-                // wave(robot01.rightArm,Math.PI);
+                //侧方摆动
+               // wave01(robot01.leftArm,0,-45,1);
+               //  wave01(robot01.rightArm,Math.PI,45,1);  //同時上摆
+                //wave01(robot01.rightArm,0,45,1);  //交替上摆
+                //前后摆动
+               // wave(robot01.leftArm,0,0,1);
+               // wave(robot01.rightArm,Math.PI,0,1);
+
+                //上下摆动
+                //  wave(robot01.leftArm,0,-90,2);
+                //  wave(robot01.rightArm,Math.PI,-90,2);
+
+                wave(robot01.leftLeg,0,-90,2);
+                wave(robot01.rightLeg,Math.PI,-90,2);
+
+                //wave(robot01.leftArm,0);
                 // var delta = clock.getDelta();
                 //
-                // // var delta = 0.01;
-                // var mesh = robot01.leftArm.forearm.cylinder;
-                // if ( ! mesh.quaternion.equals( targetRotation ) ) {
-                //
-                //     var step = speed * delta;
-                //     mesh.quaternion.rotateTowards( targetRotation, step );
 
-               // }
                 camera.position.z = robot01.leftArm.topSphere.position.z + 300;
                 camera.lookAt( robot01.leftArm.topSphere.position );
 
 				renderer.render( scene, camera );
 			}
 
-            function wave(arm,offset){
+            function wave(arm,offset,offset2,degscale){
 
                 // var children = sphereGroup.children;
 
@@ -482,7 +459,7 @@
                 // }
 
 
-                cylinder.rotation.x = (Math.sin(count/100+offset) * 45 + 90) * Math.PI / 180  + Math.PI/2;
+                cylinder.rotation.x = (Math.sin(count/100+offset) * 45*degscale + 90 +offset2) * Math.PI / 180  + Math.PI/2;
 
                 cylinder.position.x = topSphere.position.x;
                 cylinder.position.y = topSphere.position.y + cylinder.geometry.parameters.height/2*Math.cos(cylinder.rotation.x);
@@ -508,7 +485,7 @@
 
             }
 
-            function wave01(arm,offset){
+            function wave01(arm,offset,offset2,degscale){
                 var topSphere = arm.topSphere;
                 var cylinder = arm.upperArm.cylinder;
                 var smallSphere = arm.upperArm.smallSphere;
@@ -519,7 +496,7 @@
 
 
 
-                cylinder.rotation.z = (Math.sin(count/100+offset) * 45 + 90) * Math.PI / 180  + Math.PI/2;
+                cylinder.rotation.z = (Math.sin(count/100+offset) * 45*degscale + 90 + offset2) * Math.PI / 180  + Math.PI/2;
 
                 var height = cylinder.geometry.parameters.height;
                 var radius = topSphere.geometry.parameters.radius;
