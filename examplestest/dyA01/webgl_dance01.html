@@ -81,7 +81,7 @@
 
 				// camera
 				camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR );
-				camera.position.set( 0, 75, 160 );
+				camera.position.set( 0, 75, 260 );
                 camera.lookAt(0,50,0);
 
 				cameraControls = new THREE.OrbitControls( camera, renderer.domElement );
@@ -138,28 +138,41 @@
                 robot01.vy = 0;
 
 
-                robot01.leftArm = initrobotarm(0,40,0);
-                robot01.rightArm = initrobotarm(5,40,0);
+                robot01.leftArm = initrobotarm(-2,40,0);
+                robot01.rightArm = initrobotarm(22,40,0);
                 robot01.walkspeed = 1;  //robot01.leftArm.topSphere.position.z
+                robot01.body = initbody(10,40,0); //arm顶点的中点坐标
+                robot01.neck = initneck(10,40,0);  //arm顶点的中点坐标
+                robot01.head = inithead(10,45,0);  //neck顶点坐标
+
+                robot01.leftLeg = initrobotarm(2,0,0);
+                robot01.rightLeg = initrobotarm(20,0,0);
+                robot01.walkspeed = 1;
+
+                scene.add( robot01.leftLeg );
+                scene.add( robot01.rightLeg );
                 // console.log("robot01.leftArm: ", robot01.leftArm);
                 // console.log("robot01.leftArm.topSphere: ", robot01.leftArm.topSphere);
                 // console.log("robot01.leftArm.topSphere.position: ", robot01.leftArm.topSphere.position);
                 // console.log("robot01.leftArm.topSphere.position.z: ", robot01.leftArm.topSphere.position.z);
                 scene.add( robot01.leftArm );
                 scene.add( robot01.rightArm );
+                scene.add( robot01.body );
+                scene.add( robot01.neck );
+                scene.add( robot01.head );
 
 				floorBottom = new THREE.Mesh( planeGeo, new THREE.MeshPhongMaterial( { color: 0x6C7B8B } ) );
                 floorBottom.rotateX( - Math.PI / 2 );
-                floorBottom.position.y = 0;
+                floorBottom.position.y = -50;
                 scene.add( floorBottom );
 
-                var geometry = new THREE.SphereBufferGeometry( 2, 250, 250 );
-                var material = new THREE.MeshPhongMaterial( { color: 0x551A8B, emissive: 0x333333, flatShading: true } );
-				targetSphere = new THREE.Mesh( geometry, material );
-                targetSphere.position.x = 15;
-                targetSphere.position.y = 4;
-                targetSphere.position.z = 10;
-                scene.add( targetSphere );
+                // var geometry = new THREE.SphereBufferGeometry( 2, 250, 250 );
+                // var material = new THREE.MeshPhongMaterial( { color: 0x551A8B, emissive: 0x333333, flatShading: true } );
+                // targetSphere = new THREE.Mesh( geometry, material );
+                // targetSphere.position.x = 15;
+                // targetSphere.position.y = 4;
+                // targetSphere.position.z = 10;
+                // scene.add( targetSphere );
 
                 //
                 //
@@ -185,7 +198,7 @@
 
                 // lights
 
-                var ambientLight = new THREE.AmbientLight( 0xcccccc, 0.4 );
+                var ambientLight = new THREE.AmbientLight( 0xcccccc, 0.6 );
                 scene.add( ambientLight );
 
                 var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.7 );
@@ -218,8 +231,8 @@
 			// 	redLight.position.set( - 20, 0, 0 );
 			// //	scene.add( redLight );
             //
-				var blueLight = new THREE.PointLight( 0x7f7fff, 4, 1000 );
-				blueLight.position.set( 20, 20, 0 );
+				var blueLight = new THREE.PointLight( 0x7f7fff, 2, 1000 );
+				blueLight.position.set( 20, 50, 0 );
 				scene.add( blueLight );
 
 
@@ -295,6 +308,102 @@
 
 			}
 
+			function initbody(x,y,z){
+                var material = new THREE.MeshPhongMaterial( { color: 0x551A8B, emissive: 0x333333, flatShading: true } );
+                var body = new THREE.Mesh( new THREE.BoxBufferGeometry( 20, 40, 4, 4, 4, 4 ), material );
+                body.position.x = x;
+                body.position.y = y-body.geometry.parameters.height/2;
+                body.position.z = z;
+                return body;
+
+			}
+
+            function initneck(x,y,z){
+                var geometry = new THREE.CylinderBufferGeometry( 2, 2, 5, 200 );
+                var material = new THREE.MeshPhongMaterial( { color: 0x551A8B } );
+
+                var neck = new THREE.Mesh( geometry, material );
+                neck.castShadow = true;
+                neck.receiveShadow = true;
+                neck.position.x = x;
+                neck.position.y = y + neck.geometry.parameters.height/2;
+                neck.position.z = z;
+                return neck;
+            }
+
+			function inithead(x,y,z){
+
+                var head = new THREE.Object3D();
+
+                var sphere = new THREE.SphereBufferGeometry( 1, 16, 8 );
+
+                var material = new THREE.MeshPhongMaterial( { color: 0x551A8B, emissive: 0x333333, flatShading: true } );
+                var face = new THREE.Mesh( new THREE.BoxBufferGeometry( 10, 10, 4, 4, 4, 4 ), material );
+                face.position.x = x;
+                face.position.y = y+face.geometry.parameters.height/2;
+                face.position.z = z;
+
+                var eyeleft = new THREE.PointLight( 0xff0040, 20, 50 );
+                eyeleft.add( new THREE.Mesh( sphere, new THREE.MeshBasicMaterial( { color: 0x4169E1 } ) ) );
+                eyeleft.position.x = x - 2.5;
+                eyeleft.position.y = y+face.geometry.parameters.height/2+2.5;
+                eyeleft.position.z = z+2;
+
+                var eyeright = new THREE.PointLight( 0xff0040, 20, 50 );
+                eyeright.add( new THREE.Mesh( sphere, new THREE.MeshBasicMaterial( { color: 0x4169E1 } ) ) );
+                eyeright.position.x = x + 2.5;
+                eyeright.position.y = y+face.geometry.parameters.height/2+2.5;
+                eyeright.position.z = z+2;
+
+                 //var earleft = initEar();
+                var geometry = new THREE.CylinderBufferGeometry( 0.5, 0.5, 15, 200 );
+                var material = new THREE.MeshPhongMaterial( { color: 0x551A8B } );
+
+                var earleft = new THREE.Mesh( geometry, material );
+                earleft.castShadow = true;
+                earleft.receiveShadow = true;
+                earleft.position.x = x-2.5;
+                earleft.position.y = y + face.geometry.parameters.height + earleft.geometry.parameters.height/2;
+                earleft.position.z = z;
+
+                var earright = new THREE.Mesh( geometry, material );
+                earright.castShadow = true;
+                earright.receiveShadow = true;
+                earright.position.x = x+2.5;
+                earright.position.y = y + face.geometry.parameters.height + earright.geometry.parameters.height/2;
+                earright.position.z = z;
+
+                //ball
+                var geometry = new THREE.SphereBufferGeometry( 1, 250, 250 );
+                var material = new THREE.MeshPhongMaterial( { color: 0x551A8B, emissive: 0x333333, flatShading: true } );
+                var smallBallLeft = new THREE.Mesh( geometry, material );
+                smallBallLeft.position.x = earleft.position.x;
+                smallBallLeft.position.y = earleft.position.y + earleft.geometry.parameters.height/2;
+                smallBallLeft.position.z = earleft.position.z;
+
+                var smallBallRight = new THREE.Mesh( geometry, material );
+                smallBallRight.position.x = earright.position.x;
+                smallBallRight.position.y = earright.position.y + earright.geometry.parameters.height/2;
+                smallBallRight.position.z = earright.position.z;
+
+
+
+                head.face = face;
+                head.eyeleft = eyeleft;
+                head.add(face);
+                head.add(eyeleft);
+                head.add(eyeright);
+                head.add(earleft);
+                head.add(earright);
+                head.add(earright);
+                head.add(smallBallLeft);
+                head.add(smallBallRight);
+
+                return head;
+
+			}
+
+
 			function initseg(x,y,z){
 			    var seg = new THREE.Object3D();;
 
@@ -332,8 +441,10 @@
 
                 count += robot01.walkspeed;
 
-                wave(robot01.leftArm,0);
-                wave(robot01.rightArm,Math.PI);
+               // wave01(robot01.leftArm,0);
+              //  wave01(robot01.rightArm,Math.PI);
+                // wave(robot01.leftArm,0);
+                // wave(robot01.rightArm,Math.PI);
                 // var delta = clock.getDelta();
                 //
                 // // var delta = 0.01;
@@ -344,7 +455,7 @@
                 //     mesh.quaternion.rotateTowards( targetRotation, step );
 
                // }
-                camera.position.z = robot01.leftArm.topSphere.position.z + 100;
+                camera.position.z = robot01.leftArm.topSphere.position.z + 300;
                 camera.lookAt( robot01.leftArm.topSphere.position );
 
 				renderer.render( scene, camera );
@@ -397,7 +508,41 @@
 
             }
 
-            function left(){
+            function wave01(arm,offset){
+                var topSphere = arm.topSphere;
+                var cylinder = arm.upperArm.cylinder;
+                var smallSphere = arm.upperArm.smallSphere;
+
+                var cylinderfore = arm.forearm.cylinder;
+                var smallSpherefore = arm.forearm.smallSphere;
+
+
+
+
+                cylinder.rotation.z = (Math.sin(count/100+offset) * 45 + 90) * Math.PI / 180  + Math.PI/2;
+
+                var height = cylinder.geometry.parameters.height;
+                var radius = topSphere.geometry.parameters.radius;
+                 cylinder.position.z = topSphere.position.z;
+                // cylinder.position.y = topSphere.position.y - height/2*Math.sin(cylinder.rotation.z);
+                cylinder.position.y = topSphere.position.y + height/2*Math.cos(cylinder.rotation.z);
+                 cylinder.position.x = topSphere.position.x - height/2*Math.sin(cylinder.rotation.z);
+                //
+                //  var smallSphere = leg.smallSphere;
+                smallSphere.position.z = cylinder.position.z;
+                smallSphere.position.y = cylinder.position.y + cylinder.geometry.parameters.height/2*Math.cos(cylinder.rotation.z);
+                smallSphere.position.x = cylinder.position.x - cylinder.geometry.parameters.height/2*Math.sin(cylinder.rotation.z);
+                //
+                //var cylinderfore = leg.cylinderDown;
+                cylinderfore.rotation.z =  cylinder.rotation.z ;
+                cylinderfore.position.z = smallSphere.position.z;
+                cylinderfore.position.y = smallSphere.position.y + cylinderfore.geometry.parameters.height/2*Math.cos(cylinderfore.rotation.z);
+                cylinderfore.position.x = smallSphere.position.x - cylinderfore.geometry.parameters.height/2*Math.sin(cylinderfore.rotation.z);
+
+                //var footSphere = leg.footSphere;
+                smallSpherefore.position.z = cylinderfore.position.z;
+                smallSpherefore.position.y = cylinderfore.position.y + cylinderfore.geometry.parameters.height/2*Math.cos(cylinderfore.rotation.z);
+                smallSpherefore.position.x = cylinderfore.position.x - cylinderfore.geometry.parameters.height/2*Math.sin(cylinderfore.rotation.z);
 			    
 			}
 
