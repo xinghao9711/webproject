@@ -145,8 +145,8 @@
                 robot01.neck = initneck(10,40,0);  //arm顶点的中点坐标
                 robot01.head = inithead(10,45,0);  //neck顶点坐标
 
-                robot01.leftLeg = initrobotLeg(2,0,0,-1);
-                robot01.rightLeg = initrobotLeg(18,0,0,1);
+                robot01.leftLeg = initrobotLeg(2,10,0,-1);
+                robot01.rightLeg = initrobotLeg(18,10,0,1);
                // robot01.walkspeed = 1;
 
                 scene.add( robot01.leftLeg );
@@ -208,19 +208,14 @@
                 arm01.castShadow = true;
                 arm01.receiveShadow = true;
                 arm01.rotation.z = rotationZ;
-                // console.log("arm01.rotation.x: ",arm01.rotation.x);
-                // console.log("arm01.rotation.y: ",arm01.rotation.y);
-                // console.log("arm01.rotation.z: ",arm01.rotation.z);
+
                 arm01.position.x = x + arm01.geometry.parameters.height/2*Math.sin(arm01.rotation.z);
                 arm01.position.y = y - arm01.geometry.parameters.height/2*Math.cos(arm01.rotation.z);
                 arm01.position.z = z;
 
                 arm.add( arm01 );
-                arm.arm01 = arm01;
+                arm.arm = arm01;
 
-                // cylinder.position.x = topSphere.position.x;
-                // cylinder.position.y = topSphere.position.y + cylinder.geometry.parameters.height/2*Math.cos(cylinder.rotation.x);
-                // cylinder.position.z = topSphere.position.z + cylinder.geometry.parameters.height/2*Math.sin(cylinder.rotation.x);
 
                 var geometry = new THREE.CylinderBufferGeometry( 0, 2, 5, 200 );
                 var material = new THREE.MeshPhongMaterial( { color: 0x1E90FF, emissive: 0x333333, flatShading: true } );
@@ -242,91 +237,73 @@
                     * Math.sin(finger01.rotation.z);
                 finger01.position.y = arm01.position.y + (arm01.geometry.parameters.height/2 + finger01.geometry.parameters.height/2)
                     * Math.cos(finger01.rotation.z);
-                // finger01.position.x = arm01.position.x - (arm01.geometry.parameters.height/2 + finger01.geometry.parameters.height/2)
-                //     * Math.sin(finger01.rotation.z)+Math.sin(finger01.rotation.z)*1;
-                // finger01.position.y = arm01.position.y + (arm01.geometry.parameters.height/2 + finger01.geometry.parameters.height/2)
-                //     * Math.cos(finger01.rotation.z) - Math.cos(finger01.rotation.z)*1;
+
                 finger01.position.z = z;
 
-               // finger01.rotation.x = Math.PI;
-                arm.add( finger01 );
-                arm.shoulder = finger01;
 
-               //  var finger02 = new THREE.Mesh( geometry, material );
-               //  finger02.position.x = x + 1.5;
-               //  finger02.position.y = arm01.position.y - arm01.geometry.parameters.height/2 - finger02.geometry.parameters.height/2;
-               //  finger02.position.z = z;
-               //
-               // // finger02.rotation.x = Math.PI;
-               //  arm.add( finger02 );
-               //  arm.shoulder = finger02;
+                arm.add( finger01 );
+                arm.finger01 = finger01;
+                arm.x = x;
+                arm.y = y;
+                arm.z = z;
+
+
                 return arm;
 			}
             function initrobotLeg(x,y,z,lorR){
 
-                var arm = new THREE.Object3D();
+                var leg = new THREE.Object3D();
                 var rotationZ = Math.PI/12 * 1 * lorR;
 
-                var geometry = new THREE.CylinderBufferGeometry( 2, 4, 20, 200 );
+                var geometry = new THREE.CylinderBufferGeometry( 2, 4, 10, 200 );
                 var material = new THREE.MeshPhongMaterial( { color: 0x1E90FF } );
 
-                var arm01 = new THREE.Mesh( geometry, material );
-                arm01.castShadow = true;
-                arm01.receiveShadow = true;
-                arm01.rotation.z = rotationZ;
-                // console.log("arm01.rotation.x: ",arm01.rotation.x);
-                // console.log("arm01.rotation.y: ",arm01.rotation.y);
-                // console.log("arm01.rotation.z: ",arm01.rotation.z);
-                arm01.position.x = x + arm01.geometry.parameters.height/2*Math.sin(arm01.rotation.z);
-                arm01.position.y = y - arm01.geometry.parameters.height/2*Math.cos(arm01.rotation.z);
-                arm01.position.z = z;
+                var leg01 = new THREE.Mesh( geometry, material );
+                leg01.castShadow = true;
+                leg01.receiveShadow = true;
+                leg01.rotation.z = rotationZ;
 
-                arm.add( arm01 );
-                arm.arm01 = arm01;
+                leg01.position.x = x + leg01.geometry.parameters.height/2*Math.sin(leg01.rotation.z);
+                leg01.position.y = y - leg01.geometry.parameters.height/2*Math.cos(leg01.rotation.z);
+                leg01.position.z = z;
 
-                // cylinder.position.x = topSphere.position.x;
-                // cylinder.position.y = topSphere.position.y + cylinder.geometry.parameters.height/2*Math.cos(cylinder.rotation.x);
-                // cylinder.position.z = topSphere.position.z + cylinder.geometry.parameters.height/2*Math.sin(cylinder.rotation.x);
+                leg.add( leg01 );
+                leg.arm = leg01;
 
-                var geometry = new THREE.CylinderBufferGeometry( 0, 2, 5, 200 );
+
+
+                var geometry = new THREE.CylinderBufferGeometry( 1, 1, 25, 200 );
                 var material = new THREE.MeshPhongMaterial( { color: 0x1E90FF, emissive: 0x333333, flatShading: true } );
                 var shoulder = new THREE.Mesh( geometry, material );
                 shoulder.rotation.z = rotationZ;
-                shoulder.position.x = arm01.position.x - (arm01.geometry.parameters.height/2 + shoulder.geometry.parameters.height/2)
+                shoulder.position.x = leg01.position.x - (leg01.geometry.parameters.height/2 + shoulder.geometry.parameters.height/2)
                     * Math.sin(shoulder.rotation.z);
-                shoulder.position.y = arm01.position.y + (arm01.geometry.parameters.height/2 + shoulder.geometry.parameters.height/2)
+                shoulder.position.y = leg01.position.y + (leg01.geometry.parameters.height/2 + shoulder.geometry.parameters.height/2)
                     * Math.cos(shoulder.rotation.z);
                 shoulder.position.z = z;
-                arm.add( shoulder );
-                arm.shoulder = shoulder;
+                leg.add( shoulder );
+                leg.shoulder = shoulder;
 
                 var geometry = new THREE.CylinderBufferGeometry( 0, 1, 7, 200 );
                 var material = new THREE.MeshPhongMaterial( { color: 0x00FFFF, emissive: 0x333333, flatShading: true } );
                 var finger01 = new THREE.Mesh( geometry, material );
                 finger01.rotation.z = rotationZ + Math.PI;
-                finger01.position.x = arm01.position.x - (arm01.geometry.parameters.height/2 + finger01.geometry.parameters.height/2)
+                finger01.position.x = leg01.position.x - (leg01.geometry.parameters.height/2 + finger01.geometry.parameters.height/2)
                     * Math.sin(finger01.rotation.z);
-                finger01.position.y = arm01.position.y + (arm01.geometry.parameters.height/2 + finger01.geometry.parameters.height/2)
+                finger01.position.y = leg01.position.y + (leg01.geometry.parameters.height/2 + finger01.geometry.parameters.height/2)
                     * Math.cos(finger01.rotation.z);
-                // finger01.position.x = arm01.position.x - (arm01.geometry.parameters.height/2 + finger01.geometry.parameters.height/2)
-                //     * Math.sin(finger01.rotation.z)+Math.sin(finger01.rotation.z)*1;
-                // finger01.position.y = arm01.position.y + (arm01.geometry.parameters.height/2 + finger01.geometry.parameters.height/2)
-                //     * Math.cos(finger01.rotation.z) - Math.cos(finger01.rotation.z)*1;
+
                 finger01.position.z = z;
 
                 // finger01.rotation.x = Math.PI;
-                arm.add( finger01 );
-                arm.shoulder = finger01;
+                leg.add( finger01 );
+                leg.finger = finger01;
 
-                //  var finger02 = new THREE.Mesh( geometry, material );
-                //  finger02.position.x = x + 1.5;
-                //  finger02.position.y = arm01.position.y - arm01.geometry.parameters.height/2 - finger02.geometry.parameters.height/2;
-                //  finger02.position.z = z;
-                //
-                // // finger02.rotation.x = Math.PI;
-                //  arm.add( finger02 );
-                //  arm.shoulder = finger02;
-                return arm;
+                leg.x = x;
+                leg.y = y;
+                leg.z = z;
+
+                return leg;
             }
 			function initbody(x,y,z){
 
@@ -353,19 +330,13 @@
                 body.position.z = z;
 
                 sphereCap.position.y =   body.position.y - 63;
-                //halfSphere.rotateX( - Math.PI / 180 * 135 );
-                //	halfSphere.rotateZ( - Math.PI / 180 * 20 );
+
                 body.position.y = 7.5 + 15 * Math.sin( Math.PI / 180 * 30 ) + 18;
+                body.x = x;
+                body.y = y;
+                body.z = z;
 
 
-
-
-
-                // var material = new THREE.MeshPhongMaterial( { color: 0xE1FFFF, emissive: 0x333333, flatShading: true } );
-                // var body = new THREE.Mesh( new THREE.BoxBufferGeometry( 20, 40, 4, 4, 4, 4 ), material );
-                // body.position.x = x;
-                // body.position.y = y-body.geometry.parameters.height/2;
-                // body.position.z = z;
                 return body;
 
 			}
@@ -380,6 +351,9 @@
                 neck.position.x = x;
                 neck.position.y = y + neck.geometry.parameters.height/2;
                 neck.position.z = z;
+                neck.x = x;
+                neck.y = y;
+                neck.z = z;
                 return neck;
             }
 
@@ -454,6 +428,9 @@
                 head.add(earright);
                 head.add(smallBallLeft);
                 head.add(smallBallRight);
+                head.x = x;
+                head.y = y;
+                head.z = z;
 
                 return head;
 
@@ -466,33 +443,33 @@
             }
 
 
-			function initseg(x,y,z){
-			    var seg = new THREE.Object3D();;
-
-                var geometry = new THREE.CylinderBufferGeometry( 2, 4, 20, 200 );
-                var material = new THREE.MeshPhongMaterial( { color: 0x1E90FF } );
-
-                var cylinder = new THREE.Mesh( geometry, material );
-                cylinder.castShadow = true;
-                cylinder.receiveShadow = true;
-                cylinder.position.x = x;
-                cylinder.position.y = y - cylinder.geometry.parameters.height/2;
-                cylinder.position.z = z;
-                seg.add( cylinder );
-                seg.cylinder = cylinder;
-
-                var geometry = new THREE.SphereBufferGeometry( 4, 250, 250 );
-                var material = new THREE.MeshPhongMaterial( { color: 0x1E90FF, emissive: 0x333333, flatShading: true } );
-                var smallSphere = new THREE.Mesh( geometry, material );
-                smallSphere.position.x = x;
-                smallSphere.position.y = y - cylinder.geometry.parameters.height;
-                smallSphere.position.z = z;
-                seg.add( smallSphere );
-                seg.smallSphere = smallSphere;
-
-                return seg;
-
-			}
+			// function initseg(x,y,z){
+			//     var seg = new THREE.Object3D();;
+            //
+             //    var geometry = new THREE.CylinderBufferGeometry( 2, 4, 20, 200 );
+             //    var material = new THREE.MeshPhongMaterial( { color: 0x1E90FF } );
+            //
+             //    var cylinder = new THREE.Mesh( geometry, material );
+             //    cylinder.castShadow = true;
+             //    cylinder.receiveShadow = true;
+             //    cylinder.position.x = x;
+             //    cylinder.position.y = y - cylinder.geometry.parameters.height/2;
+             //    cylinder.position.z = z;
+             //    seg.add( cylinder );
+             //    seg.cylinder = cylinder;
+            //
+             //    var geometry = new THREE.SphereBufferGeometry( 4, 250, 250 );
+             //    var material = new THREE.MeshPhongMaterial( { color: 0x1E90FF, emissive: 0x333333, flatShading: true } );
+             //    var smallSphere = new THREE.Mesh( geometry, material );
+             //    smallSphere.position.x = x;
+             //    smallSphere.position.y = y - cylinder.geometry.parameters.height;
+             //    smallSphere.position.z = z;
+             //    seg.add( smallSphere );
+             //    seg.smallSphere = smallSphere;
+            //
+             //    return seg;
+            //
+			// }
 
 			var count = 0;
 			//var upstep = 0.01;
@@ -505,16 +482,16 @@
                 count += 4;
 
                 //侧方摆动
-               // wave01(robot01.leftArm,0,-45,1);
-               //  wave01(robot01.rightArm,Math.PI,45,1);  //同時上摆
+                wave01(robot01.leftArm,0,-45,1);
+                 wave01(robot01.rightArm,Math.PI,45,1);  //同時上摆
                 //wave01(robot01.rightArm,0,45,1);  //交替上摆
                 //前后摆动
                // wave(robot01.leftArm,0,0,1);
                // wave(robot01.rightArm,Math.PI,0,1);
 
                 //上下摆动
-                //  wave(robot01.leftArm,0,-90,2);
-                //  wave(robot01.rightArm,Math.PI,-90,2);
+                  //wave(robot01.leftArm,0,-90,2);
+                 // wave(robot01.rightArm,Math.PI,-90,2);
 
                 //wave(robot01.leftLeg,0,-90,2);
                 //wave(robot01.rightLeg,Math.PI,-90,2);
@@ -523,8 +500,8 @@
                 // var delta = clock.getDelta();
                 //
 
-               // camera.position.z = robot01.leftArm.topSphere.position.z + 300;
-               // camera.lookAt( robot01.leftArm.topSphere.position );
+                camera.position.z = robot01.body.position.z + 300;
+                camera.lookAt( robot01.body.position );
 
 				renderer.render( scene, camera );
 			}
@@ -534,12 +511,12 @@
                 // var children = sphereGroup.children;
 
 
-                var topSphere = arm.topSphere;
-                var cylinder = arm.upperArm.cylinder;
-                var smallSphere = arm.upperArm.smallSphere;
-
-                var cylinderfore = arm.forearm.cylinder;
-                var smallSpherefore = arm.forearm.smallSphere;
+                // var topSphere = arm.topSphere;
+                // var cylinder = arm.upperArm.cylinder;
+                // var smallSphere = arm.upperArm.smallSphere;
+                //
+                // var cylinderfore = arm.forearm.cylinder;
+                // var smallSpherefore = arm.forearm.smallSphere;
 
                 // var footSphereprevy = leg.footSphere.position.y;
                 // var footSphereprevz = leg.footSphere.position.z;
@@ -548,7 +525,11 @@
                 //     footSphereprevy = 0;
                 //     footSphereprevz = 0;
                 // }
+                var arm01 = arm.arm;
+                var shoulder = arm.shoulder;
+                var finger01 = arm.finger01;
 
+                var rotationZ =  (Math.sin(count/100+offset) * 45*degscale + 90 + offset2) * Math.PI / 180  + Math.PI/2;
 
                 cylinder.rotation.x = (Math.sin(count/100+offset) * 45*degscale + 90 +offset2) * Math.PI / 180  + Math.PI/2;
 
@@ -577,41 +558,33 @@
             }
 
             function wave01(arm,offset,offset2,degscale){
-                var topSphere = arm.topSphere;
-                var cylinder = arm.upperArm.cylinder;
-                var smallSphere = arm.upperArm.smallSphere;
 
-                var cylinderfore = arm.forearm.cylinder;
-                var smallSpherefore = arm.forearm.smallSphere;
+                var arm01 = arm.arm;
+                var shoulder = arm.shoulder;
+                var finger01 = arm.finger01;
 
+                var rotationZ =  (Math.sin(count/100+offset) * 45*degscale + 90 + offset2) * Math.PI / 180  + Math.PI/2;
+                arm01.rotation.z = rotationZ;
 
+                var height = arm01.geometry.parameters.height;
+                arm01.position.z = arm.z;
+                arm01.position.y = arm.y + height/2*Math.cos(arm01.rotation.z);
+                arm01.position.x = arm.x - height/2*Math.sin(arm01.rotation.z);
 
+                shoulder.rotation.z = rotationZ;
+                shoulder.position.x = arm01.position.x - (arm01.geometry.parameters.height/2 + shoulder.geometry.parameters.height/2)
+                    * Math.sin(shoulder.rotation.z);
+                shoulder.position.y = arm01.position.y + (arm01.geometry.parameters.height/2 + shoulder.geometry.parameters.height/2)
+                    * Math.cos(shoulder.rotation.z);
+                shoulder.position.z = arm.z;
 
-                cylinder.rotation.z = (Math.sin(count/100+offset) * 45*degscale + 90 + offset2) * Math.PI / 180  + Math.PI/2;
+                finger01.rotation.z = rotationZ + Math.PI;
+                finger01.position.x = arm01.position.x - (arm01.geometry.parameters.height/2 + finger01.geometry.parameters.height/2)
+                    * Math.sin(finger01.rotation.z);
+                finger01.position.y = arm01.position.y + (arm01.geometry.parameters.height/2 + finger01.geometry.parameters.height/2)
+                    * Math.cos(finger01.rotation.z);
 
-                var height = cylinder.geometry.parameters.height;
-                var radius = topSphere.geometry.parameters.radius;
-                 cylinder.position.z = topSphere.position.z;
-                // cylinder.position.y = topSphere.position.y - height/2*Math.sin(cylinder.rotation.z);
-                cylinder.position.y = topSphere.position.y + height/2*Math.cos(cylinder.rotation.z);
-                 cylinder.position.x = topSphere.position.x - height/2*Math.sin(cylinder.rotation.z);
-                //
-                //  var smallSphere = leg.smallSphere;
-                smallSphere.position.z = cylinder.position.z;
-                smallSphere.position.y = cylinder.position.y + cylinder.geometry.parameters.height/2*Math.cos(cylinder.rotation.z);
-                smallSphere.position.x = cylinder.position.x - cylinder.geometry.parameters.height/2*Math.sin(cylinder.rotation.z);
-                //
-                //var cylinderfore = leg.cylinderDown;
-                cylinderfore.rotation.z =  cylinder.rotation.z ;
-                cylinderfore.position.z = smallSphere.position.z;
-                cylinderfore.position.y = smallSphere.position.y + cylinderfore.geometry.parameters.height/2*Math.cos(cylinderfore.rotation.z);
-                cylinderfore.position.x = smallSphere.position.x - cylinderfore.geometry.parameters.height/2*Math.sin(cylinderfore.rotation.z);
-
-                //var footSphere = leg.footSphere;
-                smallSpherefore.position.z = cylinderfore.position.z;
-                smallSpherefore.position.y = cylinderfore.position.y + cylinderfore.geometry.parameters.height/2*Math.cos(cylinderfore.rotation.z);
-                smallSpherefore.position.x = cylinderfore.position.x - cylinderfore.geometry.parameters.height/2*Math.sin(cylinderfore.rotation.z);
-			    
+                finger01.position.z = arm.z;
 			}
 
 
