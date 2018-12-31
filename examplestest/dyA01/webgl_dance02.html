@@ -270,9 +270,7 @@
                 leg.add( leg01 );
                 leg.arm = leg01;
 
-
-
-                var geometry = new THREE.CylinderBufferGeometry( 1, 1, 25, 200 );
+                var geometry = new THREE.CylinderBufferGeometry( 1, 1, 8, 200 );
                 var material = new THREE.MeshPhongMaterial( { color: 0x1E90FF, emissive: 0x333333, flatShading: true } );
                 var shoulder = new THREE.Mesh( geometry, material );
                 shoulder.rotation.z = rotationZ;
@@ -297,11 +295,16 @@
 
                 // finger01.rotation.x = Math.PI;
                 leg.add( finger01 );
-                leg.finger = finger01;
+                leg.finger01 = finger01;
 
                 leg.x = x;
                 leg.y = y;
                 leg.z = z;
+                leg.topX = x - shoulder.geometry.parameters.height*Math.sin(leg01.rotation.z);
+                leg.topY = y + shoulder.geometry.parameters.height*Math.cos(leg01.rotation.z);
+                leg.topZ = z;
+
+
 
                 return leg;
             }
@@ -416,8 +419,6 @@
                 smallBallRight.position.y = earright.position.y + earright.geometry.parameters.radius;
                 smallBallRight.position.z = earright.position.z;
 
-
-
                 head.face = face;
                 head.eyeleft = eyeleft;
                 head.add(face);
@@ -472,6 +473,7 @@
 			// }
 
 			var count = 0;
+			var index = 1;
 			//var upstep = 0.01;
 			var outflg = 1;
 			function animate() {
@@ -479,83 +481,133 @@
 				var timer = Date.now() * 0.01;
 
                 //count += robot01.walkspeed;
-                count += 4;
+                count = 14 * (index++);
 
                 //侧方摆动
-                wave01(robot01.leftArm,0,-45,1);
-                 wave01(robot01.rightArm,Math.PI,45,1);  //同時上摆
+              //  wave(robot01.leftArm,0,-45,1,1);
+                 //wave01(robot01.rightArm,Math.PI,45,1);  //同時上摆
                 //wave01(robot01.rightArm,0,45,1);  //交替上摆
                 //前后摆动
-               // wave(robot01.leftArm,0,0,1);
-               // wave(robot01.rightArm,Math.PI,0,1);
+              //  wave(robot01.leftArm,0,0,1,1);
+               // wave(robot01.rightArm,Math.PI,0,1,-1);
 
                 //上下摆动
-                  //wave(robot01.leftArm,0,-90,2);
-                 // wave(robot01.rightArm,Math.PI,-90,2);
+                 // wave(robot01.leftArm,0,90,2,1);
+                //  wave(robot01.rightArm,Math.PI,-90,2,1);
 
-                //wave(robot01.leftLeg,0,-90,2);
-                //wave(robot01.rightLeg,Math.PI,-90,2);
+				//摆腿
+                waveLeg(robot01.leftLeg,0,-45,1,1);
+                waveLeg(robot01.rightLeg,0,-45,1,-1);
 
-                //wave(robot01.leftArm,0);
-                // var delta = clock.getDelta();
-                //
 
-                camera.position.z = robot01.body.position.z + 300;
+
+                camera.position.z = robot01.body.position.z + 200;
                 camera.lookAt( robot01.body.position );
 
 				renderer.render( scene, camera );
 			}
 
-            function wave(arm,offset,offset2,degscale){
+            function wave(arm,offset,offset2,degscale,lOrR){
 
-                // var children = sphereGroup.children;
-
-
-                // var topSphere = arm.topSphere;
-                // var cylinder = arm.upperArm.cylinder;
-                // var smallSphere = arm.upperArm.smallSphere;
-                //
-                // var cylinderfore = arm.forearm.cylinder;
-                // var smallSpherefore = arm.forearm.smallSphere;
-
-                // var footSphereprevy = leg.footSphere.position.y;
-                // var footSphereprevz = leg.footSphere.position.z;
-                // //var positionpre = leg.footSphere.position;
-                // if(isNaN(leg.footSphere.position.x) || isNaN(leg.footSphere.position.y) || isNaN(leg.footSphere.position.z)){
-                //     footSphereprevy = 0;
-                //     footSphereprevz = 0;
-                // }
                 var arm01 = arm.arm;
                 var shoulder = arm.shoulder;
                 var finger01 = arm.finger01;
 
-                var rotationZ =  (Math.sin(count/100+offset) * 45*degscale + 90 + offset2) * Math.PI / 180  + Math.PI/2;
+                 var rotationX =  (Math.sin(count/100+offset) * 45*degscale + 90 +offset2) * Math.PI / 180  + Math.PI/2*3;
+                 var rotationZ = Math.PI/12 * 1 * (-1)*lOrR;
 
-                cylinder.rotation.x = (Math.sin(count/100+offset) * 45*degscale + 90 +offset2) * Math.PI / 180  + Math.PI/2;
+                 var height = arm01.geometry.parameters.height;
+                 arm01.rotation.x = rotationX;
+                 arm01.rotation.z = rotationZ;
 
-                cylinder.position.x = topSphere.position.x;
-                cylinder.position.y = topSphere.position.y + cylinder.geometry.parameters.height/2*Math.cos(cylinder.rotation.x);
-                cylinder.position.z = topSphere.position.z + cylinder.geometry.parameters.height/2*Math.sin(cylinder.rotation.x);
+                // arm01.position.x = arm.x + (arm01.geometry.parameters.height/2)
+                //     * Math.sin(rotationZ);
+                // arm01.position.y = arm.y - (arm01.geometry.parameters.height/2)
+                //     * Math.cos(rotationX) * Math.cos(rotationX);
 
-              //  var smallSphere = leg.smallSphere;
-                smallSphere.position.x = cylinder.position.x;
-                smallSphere.position.y = cylinder.position.y + cylinder.geometry.parameters.height/2*Math.cos(cylinder.rotation.x);
-                smallSphere.position.z = cylinder.position.z + cylinder.geometry.parameters.height/2*Math.sin(cylinder.rotation.x);
+                 arm01.position.x = arm.x + (arm01.geometry.parameters.height/2 - (-1))
+                      * Math.sin(rotationZ);
+                 arm01.position.y = arm.y - (arm01.geometry.parameters.height/2 - (-1))
+                     * Math.cos(rotationX) * Math.cos(rotationX);
 
-                //var cylinderfore = leg.cylinderDown;
-                cylinderfore.rotation.x =  cylinder.rotation.x ;
-                cylinderfore.position.x = smallSphere.position.x;
-                cylinderfore.position.y = smallSphere.position.y + cylinderfore.geometry.parameters.height/2*Math.cos(cylinderfore.rotation.x);
-                cylinderfore.position.z = smallSphere.position.z + cylinderfore.geometry.parameters.height/2*Math.sin(cylinderfore.rotation.x);
+                 //arm01.position.z = arm.z;
 
-                //var footSphere = leg.footSphere;
-                smallSpherefore.position.x = cylinderfore.position.x;
-                smallSpherefore.position.y = cylinderfore.position.y + cylinderfore.geometry.parameters.height/2*Math.cos(cylinderfore.rotation.x);
-                smallSpherefore.position.z = cylinderfore.position.z + cylinderfore.geometry.parameters.height/2*Math.sin(cylinderfore.rotation.x);
+                 shoulder.rotation.x = rotationX;
+                 shoulder.rotation.z = rotationZ;
+                 shoulder.position.x = arm01.position.x - (arm01.geometry.parameters.height/2 + shoulder.geometry.parameters.height/2)
+                     * Math.sin(rotationZ);
+                 shoulder.position.y = arm01.position.y + (arm01.geometry.parameters.height/2 + shoulder.geometry.parameters.height/2)
+                     * Math.cos(rotationX) * Math.cos(rotationZ);
+                  shoulder.position.z = arm01.position.z  + (arm01.geometry.parameters.height/2 + shoulder.geometry.parameters.height/2)
+                     * Math.sin(rotationX);
 
-
+                finger01.rotation.x = rotationX + Math.PI;
+                finger01.rotation.z = rotationZ * (-1);
+                finger01.position.x = arm01.position.x + (arm01.geometry.parameters.height/2 + finger01.geometry.parameters.height/2)
+                    * Math.sin(rotationZ);
+                finger01.position.y = arm01.position.y - (arm01.geometry.parameters.height/2 + finger01.geometry.parameters.height/2)
+                    * Math.cos(rotationX) * Math.cos(rotationZ);
+                finger01.position.z = arm01.position.z  - (arm01.geometry.parameters.height/2 + finger01.geometry.parameters.height/2)
+                    * Math.sin(rotationX);
 
             }
+
+            var outflt = 1;
+            function waveLeg(arm,offset,offset2,degscale,lOrR){
+
+                var arm01 = arm.arm;
+                var shoulder = arm.shoulder;
+                var finger01 = arm.finger01;
+
+                var rotationX = (Math.sin(count/100+offset) * 45*degscale + 90 +offset2) * Math.PI / 180  + Math.PI/2*3;
+                var rotationZ = Math.PI/12 * 1 * (-1)*lOrR;
+
+                var height = arm01.geometry.parameters.height;
+                arm01.rotation.x = rotationX;
+                arm01.rotation.z = rotationZ;
+                shoulder.rotation.x = rotationX;
+                shoulder.rotation.z = rotationZ;
+                finger01.rotation.x = rotationX;
+                finger01.rotation.z = rotationZ + Math.PI;
+				// if(outflt == 1){
+                 //    console.log("arm01.position.x: ",arm01.position.x);
+                 //    console.log("arm01.position.y: ",arm01.position.y);
+                 //    console.log("arm01.position.z: ",arm01.position.z);
+                 //    console.log("shoulder.position.x: ",shoulder.position.x);
+                 //    console.log("shoulder.position.y: ",shoulder.position.y);
+                 //    console.log("shoulder.position.z: ",shoulder.position.z);
+                 //    console.log("finger01.position.x: ",finger01.position.x);
+                 //    console.log("finger01.position.y: ",finger01.position.y);
+                 //    console.log("finger01.position.z: ",finger01.position.z);
+                 //    console.log("arm.x: ",arm.x);
+                 //    console.log("arm.y: ",arm.y);
+                 //    console.log("arm.z: ",arm.z);
+                 //    outflt = 0;
+				// }
+
+                shoulder.position.x = arm.topX + (shoulder.geometry.parameters.height/2 - (-1))
+                    * Math.sin(rotationZ);
+                shoulder.position.y = arm.topY - (shoulder.geometry.parameters.height/2 - (-1))
+                    * Math.cos(rotationX) * Math.cos(rotationZ);
+                shoulder.position.z = arm.topZ - (shoulder.geometry.parameters.height)
+                    * Math.sin(rotationX);
+
+                arm01.position.x = arm.topX + (shoulder.geometry.parameters.height/2 + arm01.geometry.parameters.height/2 - (-1))
+                    * Math.sin(rotationZ);
+                arm01.position.y = arm.topY - (shoulder.geometry.parameters.height/2 + arm01.geometry.parameters.height/2 - (-1))
+                    * Math.cos(rotationX) * Math.cos(rotationZ);
+                arm01.position.z = arm.topZ - (shoulder.geometry.parameters.height + arm01.geometry.parameters.height/2)
+                    * Math.sin(rotationX);
+
+                finger01.position.x = arm01.position.x + (finger01.geometry.parameters.height/2 - (-1))
+                    * Math.sin(rotationZ);
+                finger01.position.y =  arm01.position.y - (finger01.geometry.parameters.height/2 - (-1))
+                    * Math.cos(rotationX) * Math.cos(rotationZ)
+                finger01.position.z = arm01.position.z - (finger01.geometry.parameters.height)
+                    * Math.sin(rotationX);
+
+            }
+
 
             function wave01(arm,offset,offset2,degscale){
 
@@ -567,9 +619,9 @@
                 arm01.rotation.z = rotationZ;
 
                 var height = arm01.geometry.parameters.height;
-                arm01.position.z = arm.z;
                 arm01.position.y = arm.y + height/2*Math.cos(arm01.rotation.z);
                 arm01.position.x = arm.x - height/2*Math.sin(arm01.rotation.z);
+                arm01.position.z = arm.z;
 
                 shoulder.rotation.z = rotationZ;
                 shoulder.position.x = arm01.position.x - (arm01.geometry.parameters.height/2 + shoulder.geometry.parameters.height/2)
