@@ -1,0 +1,60 @@
+\<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Ch2Ex3 Basic Line Joins</title>
+ <script src="classes/alpaca.js"></script>
+<script type="text/javascript">
+
+window.addEventListener('load', eventWindowLoaded, false);	
+function eventWindowLoaded() {
+
+	canvasApp();
+	
+}
+
+
+function canvasApp(){
+
+	var theCanvas = document.getElementById('canvas');
+  	if (!theCanvas || !theCanvas.getContext) {
+    		return;
+  	}
+
+
+  
+  	var context = theCanvas.getContext('2d');
+
+	if (!context) {
+   	 	return;
+  	}
+	// var opacity = 0.2;
+	// var opacitySpeed = 0.05;
+
+	var count = 0;
+	
+	drawScreen();
+    setInterval(drawScreen,100);
+    var x = 100;
+
+	function drawScreen() {
+        context.clearRect(0,0,theCanvas.width,theCanvas.height)
+	  //  x++;
+        var pig = new Pig(x,100,"#ff0000","#00ff00");
+        pig.draw(context);
+
+	}
+
+}
+
+
+</script> 
+</head>
+<body>
+<div style="position: absolute; top: 50px; left: 50px;">
+<canvas id="canvas" width="500" height="1000">
+ Your browser does not support the HTML 5 Canvas. 
+</canvas>
+</div>
+</body>
+</html>
